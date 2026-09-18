@@ -1,0 +1,62 @@
+name: Refresh IT job listings
+
+on:
+  schedule:
+    # Every 4 hours. GitHub Actions cron uses UTC.
+    - cron: '17 */4 * * *'
+  workflow_dispatch: {}
+  push:
+    paths:
+      - 'data/sources.json'
+      - 'data/counties.json'
+      - 'data/keywords.json'
+      - 'data/city-county-map.json'
+      - 'scraper/**'
+      - '.github/workflows/scrape-jobs.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scrape-jobs
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: scraper/package-lock.json
+
+      - name: Install scraper dependencies
+        working-directory: scraper
+        run: npm install --no-audit --no-fund
+
+      - name: Run scraper
+        working-directory: scraper
+        env:
+          # Optional repo secrets. Set both to enable "distance from home" on
+          # job cards (Settings -> Secrets and variables -> Actions). Never
+          # commit these values -- only the resulting mileage is published.
+          HOME_LAT: ${{ secrets.HOME_LAT }}
+          HOME_LON: ${{ secrets.HOME_LON }}
+        run: npm run scrape
+
+      - name: Commit updated job data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- data/jobs.json; then
+            echo "No job changes to commit."
+            exit 0
+          fi
+          git add data/jobs.json
+          git commit -m "chore: refresh IT job listings [skip ci]"
+          git push

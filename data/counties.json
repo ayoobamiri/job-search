@@ -1,0 +1,6 @@
+[
+  { "id": "sacramento", "name": "Sacramento County", "enabled": true },
+  { "id": "yolo", "name": "Yolo County", "enabled": true },
+  { "id": "placer", "name": "Placer County", "enabled": true },
+  { "id": "el-dorado", "name": "El Dorado County", "enabled": true }
+]

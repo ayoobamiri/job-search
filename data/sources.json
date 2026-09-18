@@ -1,0 +1,47 @@
+[
+  {
+    "id": "governmentjobs-statewide",
+    "name": "GovernmentJobs.com",
+    "website": "GovernmentJobs.com",
+    "type": "neogov",
+    "searchUrl": "https://www.governmentjobs.com/jobs?keywords=information%20technology&location=Sacramento%2C%20CA",
+    "enabled": true,
+    "notes": "General statewide GovernmentJobs.com board, pre-filtered to IT keywords near Sacramento."
+  },
+  {
+    "id": "losrios-schooljobs",
+    "name": "Los Rios Community College District",
+    "website": "SchoolJobs.com",
+    "type": "neogov",
+    "searchUrl": "https://www.schooljobs.com/careers/losrios",
+    "enabled": true,
+    "notes": "Los Rios CCD career site (SchoolJobs.com, same NEOGOV platform as GovernmentJobs.com)."
+  },
+  {
+    "id": "elkgrove-governmentjobs",
+    "name": "City of Elk Grove",
+    "website": "GovernmentJobs.com",
+    "type": "neogov",
+    "searchUrl": "https://www.governmentjobs.com/careers/elkgrove",
+    "enabled": true,
+    "notes": "City of Elk Grove career microsite."
+  },
+  {
+    "id": "sacramento-governmentjobs",
+    "name": "Sacramento County",
+    "website": "GovernmentJobs.com",
+    "type": "neogov",
+    "searchUrl": "https://www.governmentjobs.com/careers/sacramento?keywords=",
+    "enabled": true,
+    "notes": "Sacramento County career microsite."
+  },
+  {
+    "id": "edjoin",
+    "name": "EDJOIN",
+    "website": "EDJOIN.org",
+    "type": "edjoin",
+    "searchUrl": "https://www.edjoin.org/Home/Jobs",
+    "enabled": true,
+    "notes": "K-12 / education job board covering all CA school and county office of education postings."
+  }
+]

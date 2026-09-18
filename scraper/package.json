@@ -1,0 +1,17 @@
+{
+  "name": "it-job-search-scraper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fetches current IT/technology job postings from configured government & education job sites, filters to target counties and IT-related titles, removes expired listings, computes distance from home, and writes job-search/data/jobs.json.",
+  "type": "commonjs",
+  "main": "scrape.js",
+  "scripts": {
+    "scrape": "node scrape.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0"
+  }
+}
