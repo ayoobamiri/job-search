@@ -1,7 +1,39 @@
 {
-  "lastUpdated": null,
-  "lastRunStatus": null,
+  "lastUpdated": "2026-09-18T19:51:29.683Z",
+  "lastRunStatus": "partial",
   "homeDistanceAvailable": false,
-  "sourceRunSummary": [],
+  "sourceRunSummary": [
+    {
+      "sourceId": "governmentjobs-statewide",
+      "sourceName": "GovernmentJobs.com",
+      "status": "error",
+      "message": "Cannot read properties of undefined (reading 'trim')",
+      "jobsFound": 0
+    },
+    {
+      "sourceId": "losrios-schooljobs",
+      "sourceName": "Los Rios Community College District",
+      "status": "ok",
+      "jobsFound": 0
+    },
+    {
+      "sourceId": "elkgrove-governmentjobs",
+      "sourceName": "City of Elk Grove",
+      "status": "ok",
+      "jobsFound": 0
+    },
+    {
+      "sourceId": "sacramento-governmentjobs",
+      "sourceName": "Sacramento County",
+      "status": "ok",
+      "jobsFound": 0
+    },
+    {
+      "sourceId": "edjoin",
+      "sourceName": "EDJOIN",
+      "status": "ok",
+      "jobsFound": 0
+    }
+  ],
   "jobs": []
 }
