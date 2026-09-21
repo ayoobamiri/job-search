@@ -12,12 +12,22 @@ const cheerio = require('cheerio');
  * that's the most likely reason a real career-site search page would
  * come back with a 200 response but no matching links.
  */
-function diagnoseEmptyListing(html, url) {
+function diagnoseEmptyListing(html, url, finalUrl) {
   const $ = cheerio.load(html);
   const anchorCount = $('a').length;
   const scriptCount = $('script').length;
   const bodyTextLength = $('body').text().replace(/\s+/g, ' ').trim().length;
   const title = $('title').first().text().trim();
+
+  const redirectNote = finalUrl && finalUrl !== url ? ` [redirected to: ${finalUrl}]` : '';
+
+  const junkHref = /^(#|javascript:|mailto:|tel:)/i;
+  const sampleHrefs = [];
+  $('a[href]').each((_, el) => {
+    if (sampleHrefs.length >= 15) return;
+    const href = $(el).attr('href');
+    if (href && !junkHref.test(href) && !sampleHrefs.includes(href)) sampleHrefs.push(href);
+  });
 
   const spaMarkers = [];
   if ($('#root').length || $('#app').length) spaMarkers.push('root/app mount div');
@@ -34,13 +44,14 @@ function diagnoseEmptyListing(html, url) {
   return (
     `Listing page loaded (HTTP 200, title "${title}", ${bodyTextLength} chars of body text, ` +
     `${anchorCount} <a> tag(s), ${scriptCount} <script> tag(s)) but no job links matched the ` +
-    `expected URL pattern.` +
+    `expected URL pattern.${redirectNote}` +
     (likelyClientRendered
       ? ` Likely client-rendered: ${spaMarkers.length ? spaMarkers.join(', ') : 'few anchors relative to script count'}. ` +
         `A plain HTTP fetch cannot see content injected by JavaScript after page load -- this source ` +
         `probably needs to be fetched with a headless browser instead. URL: ${url}`
       : ` Page does not look obviously JS-rendered, so the link-discovery regex in this adapter is ` +
-        `probably just matching the wrong URL pattern for this site. URL: ${url}`)
+        `probably just matching the wrong URL pattern for this site. URL: ${url}`) +
+    (sampleHrefs.length ? ` Sample hrefs seen: ${JSON.stringify(sampleHrefs)}` : ' No non-trivial hrefs seen at all.')
   );
 }
 

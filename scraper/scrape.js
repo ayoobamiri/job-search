@@ -69,18 +69,30 @@ async function main() {
   const now = new Date();
   const nowIso = now.toISOString();
 
+  const filterStats = new Map(); // sourceId -> counts, so a source with 0 final jobs is explainable
+  const stat = (sourceId) => {
+    if (!filterStats.has(sourceId)) {
+      filterStats.set(sourceId, { raw: 0, droppedMissingFields: 0, droppedKeyword: 0, droppedCounty: 0, droppedExpired: 0, kept: 0 });
+    }
+    return filterStats.get(sourceId);
+  };
+
   const processed = [];
   for (const raw of rawJobs) {
-    if (!raw.title || !raw.applyUrl) continue;
-    if (!matchesItKeyword(raw.title, keywords)) continue;
+    const s = stat(raw.sourceId);
+    s.raw++;
+
+    if (!raw.title || !raw.applyUrl) { s.droppedMissingFields++; continue; }
+    if (!matchesItKeyword(raw.title, keywords)) { s.droppedKeyword++; continue; }
 
     const county = resolveCounty(raw.city, cityCountyMap);
-    if (!isCountyEnabled(county, enabledCounties)) continue;
+    if (!isCountyEnabled(county, enabledCounties)) { s.droppedCounty++; continue; }
 
     const salary = parseSalary(raw.salaryText);
     const closingDate = parseClosingDate(raw.closingDateText);
-    if (isExpired(closingDate, now)) continue;
+    if (isExpired(closingDate, now)) { s.droppedExpired++; continue; }
 
+    s.kept++;
     processed.push({
       title: raw.title.trim(),
       employer: raw.employer || 'Not provided',
@@ -124,6 +136,10 @@ async function main() {
   }
 
   deduped.sort((a, b) => new Date(b.firstSeen) - new Date(a.firstSeen));
+
+  for (const entry of runSummary) {
+    if (filterStats.has(entry.sourceId)) entry.filterBreakdown = filterStats.get(entry.sourceId);
+  }
 
   const output = {
     lastUpdated: nowIso,

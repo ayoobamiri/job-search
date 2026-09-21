@@ -9,7 +9,15 @@ const USER_AGENT =
  * throwing) on a final failure so one bad source/page never aborts the
  * whole scrape run.
  */
-async function fetchText(url, { retries = 2, timeoutMs = 20000, headers = {} } = {}) {
+async function fetchText(url, opts) {
+  const result = await fetchTextWithMeta(url, opts);
+  return result ? result.text : null;
+}
+
+/** Same as fetchText, but also reports the post-redirect URL and HTTP
+ * status -- useful for diagnosing a source whose configured URL now
+ * redirects somewhere unexpected (a moved/retired career site page). */
+async function fetchTextWithMeta(url, { retries = 2, timeoutMs = 20000, headers = {} } = {}) {
   let lastError = null;
   for (let attempt = 0; attempt <= retries; attempt++) {
     const controller = new AbortController();
@@ -32,7 +40,7 @@ async function fetchText(url, { retries = 2, timeoutMs = 20000, headers = {} } =
         console.warn(`[fetchHtml] ${res.status} fetching ${url}`);
         return null;
       } else {
-        return await res.text();
+        return { text: await res.text(), finalUrl: res.url, status: res.status };
       }
     } catch (err) {
       clearTimeout(timer);
@@ -52,4 +60,4 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-module.exports = { fetchText, sleep, USER_AGENT };
+module.exports = { fetchText, fetchTextWithMeta, sleep, USER_AGENT };

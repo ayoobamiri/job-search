@@ -17,7 +17,7 @@
  */
 
 const cheerio = require('cheerio');
-const { fetchText, sleep } = require('../lib/fetchHtml');
+const { fetchText, fetchTextWithMeta, sleep } = require('../lib/fetchHtml');
 const { extractJobPostings } = require('../lib/jsonld');
 const { cleanSummary } = require('../lib/normalize');
 const { diagnoseEmptyListing } = require('../lib/diagnose');
@@ -29,10 +29,18 @@ const DETAIL_FETCH_DELAY_MS = 500;
 async function fetchListings(source) {
   const jobUrls = new Set();
   let firstPageHtml = null;
+  let firstPageFinalUrl = null;
 
   for (let page = 1; page <= MAX_PAGES; page++) {
     const pageUrl = withPageParam(source.searchUrl, page);
-    const html = await fetchText(pageUrl);
+    let html;
+    if (page === 1) {
+      const meta = await fetchTextWithMeta(pageUrl);
+      html = meta && meta.text;
+      firstPageFinalUrl = meta && meta.finalUrl;
+    } else {
+      html = await fetchText(pageUrl);
+    }
     if (!html) {
       if (page === 1) throw new Error(`Could not load listing page: ${pageUrl}`);
       break;
@@ -56,7 +64,7 @@ async function fetchListings(source) {
   }
 
   if (jobUrls.size === 0) {
-    throw new Error(diagnoseEmptyListing(firstPageHtml, source.searchUrl));
+    throw new Error(diagnoseEmptyListing(firstPageHtml, source.searchUrl, firstPageFinalUrl));
   }
 
   const urls = [...jobUrls].slice(0, MAX_JOBS_PER_SOURCE);
