@@ -121,6 +121,19 @@ button { font-family: inherit; }
   color: var(--text-mute); font-size: 0.85rem;
 }
 
+.source-section { margin-bottom: 32px; }
+.source-section:last-child { margin-bottom: 0; }
+
+.source-heading {
+  font-size: 1rem; font-weight: 700; color: var(--text);
+  margin: 0 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.source-count {
+  font-weight: 500; color: var(--text-mute); font-size: 0.85rem;
+}
+
 .job-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));

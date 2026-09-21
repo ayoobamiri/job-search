@@ -8,6 +8,26 @@
     });
   }
 
+  function groupBySource(jobs) {
+    var groups = new Map();
+    jobs.forEach(function (job) {
+      var key = job.sourceName || 'Other';
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(job);
+    });
+    return [...groups.entries()].sort(function (a, b) { return a[0].localeCompare(b[0]); });
+  }
+
+  function sourceSectionHtml(sourceName, jobs) {
+    var count = jobs.length + (jobs.length === 1 ? ' job' : ' jobs');
+    return (
+      '<section class="source-section">' +
+        '<h2 class="source-heading">' + Render.escapeHtml(sourceName) + ' <span class="source-count">(' + count + ')</span></h2>' +
+        '<div class="job-grid">' + jobs.map(Render.jobCardHtml).join('') + '</div>' +
+      '</section>'
+    );
+  }
+
   function render(jobsData) {
     document.getElementById('status-banner-container').innerHTML = Render.statusBannerHtml(jobsData);
 
@@ -20,16 +40,18 @@
     document.getElementById('results-count').textContent =
       jobs.length + (jobs.length === 1 ? ' job found' : ' jobs found');
 
-    var grid = document.getElementById('job-grid');
+    var container = document.getElementById('job-sections');
     if (jobs.length === 0) {
       var reason = jobsData.lastUpdated
         ? 'No IT-related openings in the target counties right now. Check back after the next scheduled refresh.'
         : 'No scrape has run yet. Once the scheduled check runs, matching jobs will show up here.';
-      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><h3>No IT jobs right now</h3><p>' + reason + '</p></div>';
+      container.innerHTML = '<div class="empty-state"><h3>No IT jobs right now</h3><p>' + reason + '</p></div>';
       return;
     }
 
-    grid.innerHTML = jobs.map(Render.jobCardHtml).join('');
+    container.innerHTML = groupBySource(jobs)
+      .map(function (entry) { return sourceSectionHtml(entry[0], entry[1]); })
+      .join('');
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -37,8 +59,8 @@
       .then(render)
       .catch(function (err) {
         console.error(err);
-        document.getElementById('job-grid').innerHTML =
-          '<div class="empty-state" style="grid-column:1/-1;"><h3>Could not load job data</h3><p>' + Render.escapeHtml(err.message) + '</p></div>';
+        document.getElementById('job-sections').innerHTML =
+          '<div class="empty-state"><h3>Could not load job data</h3><p>' + Render.escapeHtml(err.message) + '</p></div>';
       });
   });
 })();
