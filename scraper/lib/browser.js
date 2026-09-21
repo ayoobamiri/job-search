@@ -142,6 +142,14 @@ function attachRequestLogger(page) {
     const type = res.request().resourceType();
     if (type !== 'xhr' && type !== 'fetch') return;
     console.log(`[browser][response] ${res.status()} ${res.url()}`);
+    // Body text specifically for the real data-loading call, once identified,
+    // to see its actual JSON shape rather than guess at it.
+    if (/LoadJobs/i.test(res.url())) {
+      res
+        .text()
+        .then((body) => console.log(`[browser][response-body] ${res.url()} => ${body.slice(0, 4000)}`))
+        .catch((err) => console.warn(`[browser] could not read response body: ${err.message}`));
+    }
   });
 }
 
