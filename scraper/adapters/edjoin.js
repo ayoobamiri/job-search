@@ -81,7 +81,13 @@ async function fetchJobDetail(url, source) {
 
   const postings = extractJobPostings(html);
   if (postings.length > 0) {
-    return normalizeFromJsonLd(postings[0], url, source);
+    try {
+      return normalizeFromJsonLd(postings[0], url, source);
+    } catch (err) {
+      const snapshot = JSON.stringify(postings[0]).slice(0, 800);
+      err.message = `${err.message} | posting JSON-LD: ${snapshot}`;
+      throw err;
+    }
   }
   return normalizeFromDom(html, url, source);
 }

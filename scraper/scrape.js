@@ -75,7 +75,7 @@ async function main() {
   const filterStats = new Map(); // sourceId -> counts, so a source with 0 final jobs is explainable
   const stat = (sourceId) => {
     if (!filterStats.has(sourceId)) {
-      filterStats.set(sourceId, { raw: 0, droppedMissingFields: 0, droppedKeyword: 0, droppedCounty: 0, droppedExpired: 0, kept: 0 });
+      filterStats.set(sourceId, { raw: 0, droppedMissingFields: 0, droppedKeyword: 0, droppedCounty: 0, droppedExpired: 0, kept: 0, sampleTitles: [] });
     }
     return filterStats.get(sourceId);
   };
@@ -84,6 +84,7 @@ async function main() {
   for (const raw of rawJobs) {
     const s = stat(raw.sourceId);
     s.raw++;
+    if (s.sampleTitles.length < 15) s.sampleTitles.push(raw.title || '(no title)');
 
     if (!raw.title || !raw.applyUrl) { s.droppedMissingFields++; continue; }
     if (!matchesItKeyword(raw.title, keywords)) { s.droppedKeyword++; continue; }

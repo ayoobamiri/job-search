@@ -88,7 +88,16 @@ async function fetchJobDetail(url, source) {
 
   const postings = extractJobPostings(html);
   if (postings.length > 0) {
-    return normalizeFromJsonLd(postings[0], url, source);
+    try {
+      return normalizeFromJsonLd(postings[0], url, source);
+    } catch (err) {
+      // Re-throw with the actual posting payload attached so the real
+      // shape that broke normalization is visible in the run's logs,
+      // instead of just an opaque "reading 'trim' of undefined".
+      const snapshot = JSON.stringify(postings[0]).slice(0, 800);
+      err.message = `${err.message} | posting JSON-LD: ${snapshot}`;
+      throw err;
+    }
   }
   return normalizeFromDom(html, url, source);
 }
