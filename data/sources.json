@@ -24,7 +24,7 @@
     "type": "neogov",
     "searchUrl": "https://www.governmentjobs.com/careers/elkgrove",
     "enabled": true,
-    "notes": "City of Elk Grove career microsite."
+    "notes": "City of Elk Grove career microsite. A 2026-09-21 run only found 1 candidate link (Real-Time Information Center Operator) when at least 3 are actually open right now (also Police Support Specialist, Permit Processing Coordinator, per a search-engine check) -- likely a one-off slow-render timing issue since Los Rios/Sacramento found 86/101 candidates with the same code. Watch subsequent runs' sourceRunSummary candidate counts for this source; if it stays stuck near 1, the render wait time needs increasing further."
   },
   {
     "id": "sacramento-governmentjobs",
@@ -40,8 +40,8 @@
     "name": "EDJOIN",
     "website": "EDJOIN.org",
     "type": "edjoin",
-    "searchUrl": "https://www.edjoin.org/Home/Jobs",
+    "searchUrl": "https://www.edjoin.org/Home/Jobs?rows=300&sort=postingDate&order=desc&searchType=all&days=0",
     "enabled": true,
-    "notes": "K-12 / education job board covering all CA school and county office of education postings."
+    "notes": "K-12 / education job board covering all CA school and county office of education postings. Confirmed 2026-09-21: unlike the NEOGOV sites, EDJOIN's list is capped by a `rows=` URL param (defaults to 10 with the bare /Home/Jobs URL, which is why a run only ever found 10 candidates total statewide) rather than being scroll-driven -- `rows=300` asks for far more per load. `days=0` disables any posting-date cutoff so it doesn't silently exclude older-but-still-open postings."
   }
 ]

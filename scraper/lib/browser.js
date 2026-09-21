@@ -49,7 +49,7 @@ function getBrowser() {
  * [href, visibleText] pairs accumulated across every step. Returns null on
  * failure rather than throwing, to match fetchHtml's contract.
  */
-async function fetchRenderedHtml(url, { waitAfterLoadMs = 4000, timeoutMs = 30000, retries = 1, maxLoadSteps = 25 } = {}) {
+async function fetchRenderedHtml(url, { waitAfterLoadMs = 6000, timeoutMs = 30000, retries = 2, maxLoadSteps = 25 } = {}) {
   for (let attempt = 0; attempt <= retries; attempt++) {
     let page;
     try {
