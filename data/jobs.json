@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-09-21T20:10:39.329Z",
+  "lastUpdated": "2026-09-21T20:28:24.028Z",
   "lastRunStatus": "ok",
   "homeDistanceAvailable": false,
   "sourceRunSummary": [
@@ -64,7 +64,7 @@
       "sourceId": "governmentjobs-statewide",
       "sourceName": "GovernmentJobs.com",
       "sourceWebsite": "GovernmentJobs.com",
-      "fetchedAt": "2026-09-21T20:10:39.329Z",
+      "fetchedAt": "2026-09-21T20:28:24.028Z",
       "id": "ef88b142b7b36189",
       "alsoListedOn": [],
       "cityLat": 38.6779591,
