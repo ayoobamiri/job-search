@@ -1,37 +1,40 @@
 {
-  "lastUpdated": "2026-09-21T15:08:25.298Z",
+  "lastUpdated": "2026-09-21T15:33:58.637Z",
   "lastRunStatus": "partial",
   "homeDistanceAvailable": false,
   "sourceRunSummary": [
     {
       "sourceId": "governmentjobs-statewide",
       "sourceName": "GovernmentJobs.com",
-      "status": "error",
-      "message": "Cannot read properties of undefined (reading 'trim')",
-      "jobsFound": 0
+      "status": "ok",
+      "jobsFound": 47
     },
     {
       "sourceId": "losrios-schooljobs",
       "sourceName": "Los Rios Community College District",
-      "status": "ok",
+      "status": "error",
+      "message": "Listing page loaded (HTTP 200, title \"GovernmentJobs.com | Apply to Government Jobs & Public Sector Jobs\", 3139 chars of body text, 20 <a> tag(s), 7 <script> tag(s)) but no job links matched the expected URL pattern. Likely client-rendered: Angular (ng-version). A plain HTTP fetch cannot see content injected by JavaScript after page load -- this source probably needs to be fetched with a headless browser instead. URL: https://www.schooljobs.com/careers/losrios",
       "jobsFound": 0
     },
     {
       "sourceId": "elkgrove-governmentjobs",
       "sourceName": "City of Elk Grove",
-      "status": "ok",
+      "status": "error",
+      "message": "Listing page loaded (HTTP 200, title \"Job Opportunities | Careers at the City of Elk Grove\", 116056 chars of body text, 83 <a> tag(s), 26 <script> tag(s)) but no job links matched the expected URL pattern. Page does not look obviously JS-rendered, so the link-discovery regex in this adapter is probably just matching the wrong URL pattern for this site. URL: https://www.governmentjobs.com/careers/elkgrove",
       "jobsFound": 0
     },
     {
       "sourceId": "sacramento-governmentjobs",
       "sourceName": "Sacramento County",
-      "status": "ok",
+      "status": "error",
+      "message": "Listing page loaded (HTTP 200, title \"Job Opportunities | Sacramento County Jobs\", 121129 chars of body text, 94 <a> tag(s), 28 <script> tag(s)) but no job links matched the expected URL pattern. Page does not look obviously JS-rendered, so the link-discovery regex in this adapter is probably just matching the wrong URL pattern for this site. URL: https://www.governmentjobs.com/careers/sacramento?keywords=",
       "jobsFound": 0
     },
     {
       "sourceId": "edjoin",
       "sourceName": "EDJOIN",
-      "status": "ok",
+      "status": "error",
+      "message": "Listing page loaded (HTTP 200, title \"Jobs -  | EDJOIN\", 25441 chars of body text, 25 <a> tag(s), 46 <script> tag(s)) but no job links matched the expected URL pattern. Page does not look obviously JS-rendered, so the link-discovery regex in this adapter is probably just matching the wrong URL pattern for this site. URL: https://www.edjoin.org/Home/Jobs",
       "jobsFound": 0
     }
   ],
