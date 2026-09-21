@@ -30,17 +30,24 @@ function getBrowser() {
 /**
  * Loads a URL in a headless browser, waits for network activity to settle
  * (plus a fixed grace period for a client-rendered job list to populate
- * after its own XHR/fetch call), then repeatedly scrolls to the bottom and
- * clicks any "load more" / "next page" control it can find, accumulating
- * page height growth, since real run data (2026-09-21) showed these career
+ * after its own XHR/fetch call), then repeatedly scrolls/clicks to load
+ * more of the list, since real run data (2026-09-21) showed these career
  * sites' job lists load via infinite-scroll/click-to-load rather than a
  * `?page=N` URL param -- the very first render only ever contained a
  * default-sized alphabetical slice of the full list (every source's first
  * observed titles started with "A"), so postings further down the
  * alphabet (most "Information Technology ..." / "Technology ..." titles)
- * were never reached. Returns the fully rendered, fully-scrolled HTML plus
- * the post-redirect URL. Returns null on failure rather than throwing, to
- * match fetchHtml's contract.
+ * were never reached.
+ *
+ * Every anchor (href + visible text) is snapshotted at *each* load step
+ * and merged into one accumulated map, rather than only reading the final
+ * page.content() -- this covers both an infinite-scroll list that appends
+ * to the DOM and a "next page" control that replaces it, without needing
+ * to know which one a given site uses.
+ *
+ * Returns { text, finalUrl, anchors } where anchors is an array of
+ * [href, visibleText] pairs accumulated across every step. Returns null on
+ * failure rather than throwing, to match fetchHtml's contract.
  */
 async function fetchRenderedHtml(url, { waitAfterLoadMs = 4000, timeoutMs = 30000, retries = 1, maxLoadSteps = 25 } = {}) {
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -57,11 +64,11 @@ async function fetchRenderedHtml(url, { waitAfterLoadMs = 4000, timeoutMs = 3000
       await page.waitForLoadState('networkidle', { timeout: timeoutMs }).catch(() => {});
       await page.waitForTimeout(waitAfterLoadMs);
 
-      await loadFullList(page, maxLoadSteps);
+      const anchors = await loadFullList(page, maxLoadSteps);
 
       const html = await page.content();
       const finalUrl = page.url();
-      return { text: html, finalUrl };
+      return { text: html, finalUrl, anchors: [...anchors.entries()] };
     } catch (err) {
       console.warn(`[browser] attempt ${attempt + 1} failed for ${url}: ${err.message}`);
       if (attempt === retries) return null;
@@ -74,28 +81,69 @@ async function fetchRenderedHtml(url, { waitAfterLoadMs = 4000, timeoutMs = 3000
 
 /**
  * Scrolls to the bottom and clicks any visible "load more"/"next"-style
- * control repeatedly until the page stops growing for two consecutive
- * attempts, or maxLoadSteps is hit. Growth is measured by document height
- * as a platform-agnostic proxy for "more content appeared" -- it doesn't
- * need to know each site's specific markup.
+ * control repeatedly until no new anchors appear for two consecutive
+ * attempts, or maxLoadSteps is hit. Returns the accumulated href -> text
+ * map built up across every step.
+ *
+ * Two scroll mechanisms are combined because the job list frequently lives
+ * inside its own scrollable panel (fixed-height results div next to a
+ * filter sidebar) rather than the page/window itself -- `window.scrollTo`
+ * alone does nothing in that layout. `page.mouse.wheel()` fires a genuine
+ * wheel event that Chromium hit-tests and routes to whichever element is
+ * actually under the cursor, same as a real user scrolling, which reaches
+ * an inner scrollable panel that a window-level scroll can't. Every
+ * scrollable element found in the DOM is also driven directly via JS as a
+ * second pass, in case the results panel isn't under the cursor position.
  */
 async function loadFullList(page, maxLoadSteps) {
-  let lastHeight = await page.evaluate(() => document.body.scrollHeight).catch(() => 0);
+  const viewport = page.viewportSize() || { width: 1024, height: 500 };
+  const accumulated = new Map();
   let stableCount = 0;
 
-  for (let step = 0; step < maxLoadSteps && stableCount < 2; step++) {
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)).catch(() => {});
-    await clickLoadMoreIfPresent(page);
-    await page.waitForTimeout(900);
+  for (let step = 0; step <= maxLoadSteps && stableCount < 2; step++) {
+    const before = accumulated.size;
+    for (const [href, text] of await snapshotAnchors(page)) {
+      if (!accumulated.has(href)) accumulated.set(href, text);
+    }
 
-    const height = await page.evaluate(() => document.body.scrollHeight).catch(() => lastHeight);
-    if (height <= lastHeight) {
+    if (accumulated.size <= before) {
       stableCount++;
     } else {
       stableCount = 0;
-      lastHeight = height;
     }
+
+    await page.mouse.move(viewport.width / 2, viewport.height / 2).catch(() => {});
+    await page.mouse.wheel(0, 2500).catch(() => {});
+    await scrollAllScrollableElements(page);
+    await clickLoadMoreIfPresent(page);
+    await page.waitForTimeout(900);
   }
+
+  return accumulated;
+}
+
+function snapshotAnchors(page) {
+  return page
+    .evaluate(() =>
+      Array.from(document.querySelectorAll('a[href]')).map((a) => [
+        a.getAttribute('href'),
+        (a.textContent || '').replace(/\s+/g, ' ').trim(),
+      ])
+    )
+    .catch(() => []);
+}
+
+function scrollAllScrollableElements(page) {
+  return page
+    .evaluate(() => {
+      const all = document.querySelectorAll('body *');
+      for (const el of all) {
+        if (el.scrollHeight > el.clientHeight + 20) {
+          el.scrollTop = el.scrollHeight;
+        }
+      }
+    })
+    .catch(() => {});
 }
 
 async function clickLoadMoreIfPresent(page) {

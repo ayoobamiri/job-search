@@ -34,23 +34,18 @@ const DETAIL_FETCH_DELAY_MS = 500;
 
 async function fetchListings(source, keywords) {
   const rendered = await fetchRenderedHtml(source.searchUrl);
-  const html = rendered && rendered.text;
-  if (!html) throw new Error(`Could not load listing page: ${source.searchUrl}`);
+  if (!rendered) throw new Error(`Could not load listing page: ${source.searchUrl}`);
 
-  const $ = cheerio.load(html);
   const candidates = new Map();
-
-  $('a[href]').each((_, el) => {
-    const href = $(el).attr('href');
-    if (!href) return;
-    if (!/JobPosting|JobDetail|\/Jobs\/Details|PostingID=\d+/i.test(href)) return;
+  for (const [href, text] of rendered.anchors) {
+    if (!href) continue;
+    if (!/JobPosting|JobDetail|\/Jobs\/Details|PostingID=\d+/i.test(href)) continue;
     const url = absoluteUrl(href, source.searchUrl);
-    const text = $(el).text().replace(/\s+/g, ' ').trim();
     if (text && !candidates.has(url)) candidates.set(url, text);
-  });
+  }
 
   if (candidates.size === 0) {
-    throw new Error(diagnoseEmptyListing(html, source.searchUrl, rendered.finalUrl));
+    throw new Error(diagnoseEmptyListing(rendered.text, source.searchUrl, rendered.finalUrl));
   }
 
   const matching = [...candidates.entries()]
