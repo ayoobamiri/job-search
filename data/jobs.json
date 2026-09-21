@@ -1,17 +1,17 @@
 {
-  "lastUpdated": "2026-09-21T15:54:34.149Z",
-  "lastRunStatus": "partial",
+  "lastUpdated": "2026-09-21T16:16:43.706Z",
+  "lastRunStatus": "ok",
   "homeDistanceAvailable": false,
   "sourceRunSummary": [
     {
       "sourceId": "governmentjobs-statewide",
       "sourceName": "GovernmentJobs.com",
       "status": "ok",
-      "jobsFound": 46,
+      "jobsFound": 47,
       "filterBreakdown": {
-        "raw": 46,
+        "raw": 47,
         "droppedMissingFields": 0,
-        "droppedKeyword": 46,
+        "droppedKeyword": 47,
         "droppedCounty": 0,
         "droppedExpired": 0,
         "kept": 0
@@ -20,30 +20,58 @@
     {
       "sourceId": "losrios-schooljobs",
       "sourceName": "Los Rios Community College District",
-      "status": "error",
-      "message": "Listing page loaded (HTTP 200, title \"GovernmentJobs | City, State, Federal & Public Sector Jobs\", 126320 chars of body text, 77 <a> tag(s), 40 <script> tag(s)) but no job links matched the expected URL pattern. [redirected to: https://www.governmentjobs.com/] Page does not look obviously JS-rendered, so the link-discovery regex in this adapter is probably just matching the wrong URL pattern for this site. URL: https://www.governmentjobs.com/careers/losrios 41 distinct href(s) total, digit-containing ones first: [\"https://www.neogov.com/hubfs/BIOMETRIC%20DATA%20NOTICE.pdf\",\"https://support.microsoft.com/en-us/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09\",\"https://support.google.com/chrome/answer/95647?hl=en\",\"http://support.apple.com/kb/PH5042\",\"https://optout.networkadvertising.org/?c=1\",\"https://optout.aboutads.info/?c=2&lang=EN\",\"/\",\"https://employer.governmentjobs.com\",\"https://employer.governmentjobs.com/#/sign-in\",\"/inbox\",\"/ProfileSettings\",\"/Applications/Submitted\",\"/SavedJobs\",\"/Applications/AccountSettings\",\"/Home/ApplicationGuide\",\"/AccessMembership\",\"/Applications/createaccount\",\"/Applications/CreateAccount\",\"/resources\",\"https://www.neogov.com/\",\"/home/applicationguide\",\"/home/companyinfo\",\"/home/privacypolicy\",\"/home/termsofuse\",\"/home/accessibilitystatement\",\"https://www.facebook.com/neogov\",\"https://twitter.com/neogov\",\"https://www.linkedin.com/company/neogov\",\"/Applications/AccountSettings#contact\",\"/Applications/AccountSettings#preferences\",\"http://kb.mozillazine.org/Cookies#Firefox\",\"https://tools.google.com/dlpage/gaoptout\",\"https://www.neogov.com/marketplace\",\"https://info.neogov.com/privacy-policy-request\",\"https://allaboutdnt.com/\",\"https://www.neogov.com\",\"https://www.neoed.com\",\"https://www.powerdms.com\",\"https://www.governmentjobs.com\",\"https://www.schooljobs.com\"]",
-      "jobsFound": 0
+      "status": "ok",
+      "jobsFound": 50,
+      "filterBreakdown": {
+        "raw": 50,
+        "droppedMissingFields": 0,
+        "droppedKeyword": 50,
+        "droppedCounty": 0,
+        "droppedExpired": 0,
+        "kept": 0
+      }
     },
     {
       "sourceId": "elkgrove-governmentjobs",
       "sourceName": "City of Elk Grove",
-      "status": "error",
-      "message": "Listing page loaded (HTTP 200, title \"Job Opportunities | Careers at the City of Elk Grove\", 116056 chars of body text, 83 <a> tag(s), 26 <script> tag(s)) but no job links matched the expected URL pattern. Page does not look obviously JS-rendered, so the link-discovery regex in this adapter is probably just matching the wrong URL pattern for this site. URL: https://www.governmentjobs.com/careers/elkgrove 40 distinct href(s) total, digit-containing ones first: [\"https://goo.gl/y6DRrV\",\"https://www.neogov.com/hubfs/BIOMETRIC%20DATA%20NOTICE.pdf\",\"https://support.microsoft.com/en-us/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09\",\"https://support.google.com/chrome/answer/95647?hl=en\",\"http://support.apple.com/kb/PH5042\",\"https://optout.networkadvertising.org/?c=1\",\"https://optout.aboutads.info/?c=2&lang=EN\",\"/careers/elkgrove\",\"/careers/elkgrove/applications/submitted\",\"/careers/elkgrove/inbox\",\"/careers/elkgrove/profilesettings\",\"/careers/elkgrove/applications/accountsettings\",\"/vetted/RedirectToVetted\",\"/careers/elkgrove/privacypolicy\",\"/careers/elkgrove/termsofuse\",\"/careers/elkgrove/accessibilitystatement\",\"/Applications/AccountSettings#contact\",\"/Applications/AccountSettings#preferences\",\"/home/privacypolicy\",\"https://elkgrove.gov/\",\"https://elkgrove.gov/departments-and-divisions/human-resources\",\"/careers/elkgrove/jobInterestCards/categories\",\"/careers/elkgrove/classspecs\",\"/careers/elkgrove/promotionaljobs\",\"/careers/elkgrove/transferjobs\",\"/careers/elkgrove/helpandsupport/applicationguide\",\"https://www.facebook.com/ElkGroveCity/\",\"https://twitter.com/CityofElkGrove\",\"https://www.youtube.com/cityofElkGroveCalifornia\",\"http://kb.mozillazine.org/Cookies#Firefox\",\"https://tools.google.com/dlpage/gaoptout\",\"https://www.neogov.com/marketplace\",\"https://info.neogov.com/privacy-policy-request\",\"https://allaboutdnt.com/\",\"https://www.neogov.com\",\"https://www.neoed.com\",\"https://www.powerdms.com\",\"https://www.governmentjobs.com\",\"https://www.schooljobs.com\",\"https://www.governmentjobs.com/careers/elkgrove/privacypolicy\"]",
-      "jobsFound": 0
+      "status": "ok",
+      "jobsFound": 1,
+      "filterBreakdown": {
+        "raw": 1,
+        "droppedMissingFields": 0,
+        "droppedKeyword": 1,
+        "droppedCounty": 0,
+        "droppedExpired": 0,
+        "kept": 0
+      }
     },
     {
       "sourceId": "sacramento-governmentjobs",
       "sourceName": "Sacramento County",
-      "status": "error",
-      "message": "Listing page loaded (HTTP 200, title \"Job Opportunities | Sacramento County Jobs\", 121129 chars of body text, 94 <a> tag(s), 26 <script> tag(s)) but no job links matched the expected URL pattern. Page does not look obviously JS-rendered, so the link-discovery regex in this adapter is probably just matching the wrong URL pattern for this site. URL: https://www.governmentjobs.com/careers/sacramento?keywords= 49 distinct href(s) total, digit-containing ones first: [\"https://personnel.saccounty.gov/us/en/faqs/ES--faqs.html#gsc.tab=0\",\"https://personnel.saccounty.gov/us/en/dco/jobApp-accommodations.html#gsc.tab=0\",\"https://www.facebook.com/pages/Sacramento-County/308282075892553\",\"https://plus.google.com/111262915290932532401\",\"https://www.youtube.com/channel/UCnOUhsMipuGIkvtSmV49nvA\",\"https://www.neogov.com/hubfs/BIOMETRIC%20DATA%20NOTICE.pdf\",\"https://support.microsoft.com/en-us/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09\",\"https://support.google.com/chrome/answer/95647?hl=en\",\"http://support.apple.com/kb/PH5042\",\"https://optout.networkadvertising.org/?c=1\",\"https://optout.aboutads.info/?c=2&lang=EN\",\"/careers/sacramento\",\"/careers/sacramento/applications/submitted\",\"/careers/sacramento/inbox\",\"/careers/sacramento/profilesettings\",\"/careers/sacramento/applications/accountsettings\",\"/vetted/RedirectToVetted\",\"https://www.governmentjobs.com/\",\"https://www.governmentjobs.com/Content/Documents/apply.pdf\",\"https://www.governmentjobs.com/home/faq\",\"https://www.governmentjobs.com/careers/sacramento/jobInterestCards/categories\",\"https://www.governmentjobs.com/careers/sacramento/classspecs\",\"http://www.governmentjobs.com\",\"/careers/sacramento/privacypolicy\",\"/careers/sacramento/termsofuse\",\"/careers/sacramento/accessibilitystatement\",\"/Applications/AccountSettings#contact\",\"/Applications/AccountSettings#preferences\",\"/home/privacypolicy\",\"/careers/sacramento/transferjobs\",\"/careers/sacramento/classspecs\",\"/careers/sacramento/jobInterestCards/categories\",\"http://www.saccounty.net\",\"http://www.personnel.saccounty.net/Pages/EmploymentServices.aspx\",\"http://www.personnel.saccounty.net/Pages/ESJobSeekerResources.aspx\",\"/careers/sacramento/helpandsupport/applicationguide\",\"https://twitter.com/SacCountyCA\",\"https://www.linkedin.com/company/sacramento-county\",\"http://kb.mozillazine.org/Cookies#Firefox\",\"https://tools.google.com/dlpage/gaoptout\"]",
-      "jobsFound": 0
+      "status": "ok",
+      "jobsFound": 20,
+      "filterBreakdown": {
+        "raw": 20,
+        "droppedMissingFields": 0,
+        "droppedKeyword": 20,
+        "droppedCounty": 0,
+        "droppedExpired": 0,
+        "kept": 0
+      }
     },
     {
       "sourceId": "edjoin",
       "sourceName": "EDJOIN",
-      "status": "error",
-      "message": "Listing page loaded (HTTP 200, title \"Jobs -  | EDJOIN\", 25441 chars of body text, 25 <a> tag(s), 46 <script> tag(s)) but no job links matched the expected URL pattern. Page does not look obviously JS-rendered, so the link-discovery regex in this adapter is probably just matching the wrong URL pattern for this site. URL: https://www.edjoin.org/Home/Jobs 19 distinct href(s) total, digit-containing ones first: [\"https://www.youtube.com/playlist?list=PLKwnyR7WnM6BshiVW2zQ6DeDkMyz0BaW4\",\"/Home/Index\",\"/FAQS/Index\",\"/Home/RegionSearch\",\"/Home/Events\",\"https://www.edjoinadmin.org/join.aspx\",\"/Account/Login\",\"/Account/Register\",\"/Home/ContactForm\",\"https://www.codestack.org\",\"https://www.sjcoe.org\",\"https://twitter.com/edjoin\",\"https://www.facebook.com/edjoin\",\"https://www.ccsesa.org/\",\"/Home/Privacy\",\"https://codestack.org\",\"https://www.seis.org\",\"https://www.edjoin.org\",\"https://www.beyondsst.org\"]",
-      "jobsFound": 0
+      "status": "ok",
+      "jobsFound": 50,
+      "filterBreakdown": {
+        "raw": 50,
+        "droppedMissingFields": 0,
+        "droppedKeyword": 50,
+        "droppedCounty": 0,
+        "droppedExpired": 0,
+        "kept": 0
+      }
     }
   ],
   "jobs": []
