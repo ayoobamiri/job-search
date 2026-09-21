@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-09-21T18:36:41.744Z",
+  "lastUpdated": "2026-09-21T19:54:14.520Z",
   "lastRunStatus": "ok",
   "homeDistanceAvailable": false,
   "sourceRunSummary": [
@@ -7,7 +7,18 @@
       "sourceId": "governmentjobs-statewide",
       "sourceName": "GovernmentJobs.com",
       "status": "ok",
-      "jobsFound": 0
+      "jobsFound": 1,
+      "filterBreakdown": {
+        "raw": 1,
+        "droppedMissingFields": 0,
+        "droppedKeyword": 0,
+        "droppedCounty": 0,
+        "droppedExpired": 0,
+        "kept": 1,
+        "sampleTitles": [
+          "Senior IT Specialist (Cloud Infrastructure and AI Solutions Specialist)"
+        ]
+      }
     },
     {
       "sourceId": "losrios-schooljobs",
@@ -34,5 +45,33 @@
       "jobsFound": 0
     }
   ],
-  "jobs": []
+  "jobs": [
+    {
+      "title": "Senior IT Specialist (Cloud Infrastructure and AI Solutions Specialist)",
+      "employer": "PRISM",
+      "city": "Folsom, CA",
+      "county": "Sacramento County",
+      "salaryText": "$8416 - $10309 month",
+      "salaryMin": 8416,
+      "salaryMax": 10309,
+      "salaryPeriod": "month",
+      "closingDate": "2026-10-26",
+      "noClosingDate": false,
+      "employmentType": "Full-time",
+      "summary": "&lt;p&gt;PRISM is a joint powers authority (JPA) that provides risk management and coverage programs for public entities throughout California, including 93% of California counties, 77% of California cities, 30 joint powers authorities, educational organizations, special districts, housing authorities, fire districts…",
+      "applyUrl": "https://www.governmentjobs.com/jobs/148899-1/senior-it-specialist-cloud-infrastructure-and-ai-solutions-specialist",
+      "postedDate": "2026-08-27T00:00:00.000Z",
+      "sourceId": "governmentjobs-statewide",
+      "sourceName": "GovernmentJobs.com",
+      "sourceWebsite": "GovernmentJobs.com",
+      "fetchedAt": "2026-09-21T19:54:14.520Z",
+      "id": "ef88b142b7b36189",
+      "alsoListedOn": [],
+      "cityLat": 38.6779591,
+      "cityLon": -121.176058,
+      "distanceMiles": null,
+      "firstSeen": "2026-09-21T19:54:14.520Z",
+      "isNew": true
+    }
+  ]
 }
