@@ -33,7 +33,11 @@ const MAX_CANDIDATE_JOBS = 150;
 const DETAIL_FETCH_DELAY_MS = 500;
 
 async function fetchListings(source, keywords) {
-  const rendered = await fetchRenderedHtml(source.searchUrl);
+  // logRequests: diagnostic only, to find the real API call EDJOIN's search
+  // box fires (its bare /Home/Jobs URL has stayed stuck at exactly 10
+  // candidates through several other fixes -- see README's "Known
+  // limitation" section). Safe to remove once that's understood.
+  const rendered = await fetchRenderedHtml(source.searchUrl, { logRequests: true });
   if (!rendered) throw new Error(`Could not load listing page: ${source.searchUrl}`);
 
   const candidates = new Map();

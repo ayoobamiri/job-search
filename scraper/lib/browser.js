@@ -49,7 +49,7 @@ function getBrowser() {
  * [href, visibleText] pairs accumulated across every step. Returns null on
  * failure rather than throwing, to match fetchHtml's contract.
  */
-async function fetchRenderedHtml(url, { waitAfterLoadMs = 6000, timeoutMs = 30000, retries = 2, maxLoadSteps = 25 } = {}) {
+async function fetchRenderedHtml(url, { waitAfterLoadMs = 6000, timeoutMs = 30000, retries = 2, maxLoadSteps = 25, logRequests = false } = {}) {
   for (let attempt = 0; attempt <= retries; attempt++) {
     let page;
     try {
@@ -58,6 +58,7 @@ async function fetchRenderedHtml(url, { waitAfterLoadMs = 6000, timeoutMs = 3000
       // engages scroll-triggered lazy loading sooner than a full desktop
       // viewport would.
       page = await browser.newPage({ userAgent: USER_AGENT, viewport: { width: 1024, height: 500 } });
+      if (logRequests) attachRequestLogger(page);
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
       // networkidle can hang forever on pages with polling/analytics beacons,
       // so treat it as best-effort rather than something we wait strictly for.
@@ -121,6 +122,27 @@ async function loadFullList(page, maxLoadSteps) {
   }
 
   return accumulated;
+}
+
+/**
+ * Logs every XHR/fetch request the page makes (URL, method, and POST body
+ * if any) -- used as a diagnostic to find the real API call a site's
+ * search box fires, instead of guessing at URL query parameters that a
+ * client-side app may not read at all. Only xhr/fetch resource types are
+ * logged (not images/fonts/analytics) to keep the run log readable.
+ */
+function attachRequestLogger(page) {
+  page.on('request', (req) => {
+    const type = req.resourceType();
+    if (type !== 'xhr' && type !== 'fetch') return;
+    const body = req.postData();
+    console.log(`[browser][request] ${req.method()} ${req.url()}${body ? ' BODY=' + body.slice(0, 300) : ''}`);
+  });
+  page.on('response', (res) => {
+    const type = res.request().resourceType();
+    if (type !== 'xhr' && type !== 'fetch') return;
+    console.log(`[browser][response] ${res.status()} ${res.url()}`);
+  });
 }
 
 function snapshotAnchors(page) {
