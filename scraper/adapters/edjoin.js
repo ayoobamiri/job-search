@@ -3,21 +3,18 @@
 /**
  * Adapter for EDJOIN.org, California's K-12 / education job board.
  *
- * ASSUMPTION (unverified in this environment -- outbound requests to
- * edjoin.org are blocked by this sandbox's network policy, so link
- * discovery below could not be tested against live markup): job detail
- * pages are expected to carry schema.org JobPosting JSON-LD (as with
- * NEOGOV, used for Google for Jobs indexing) which is parsed as the
- * primary source of truth. The listing-page link-discovery selectors are
- * the most likely thing to need adjustment -- check those first if a run
- * finds 0 jobs from EDJOIN, since EDJOIN's search results may render via
- * client-side JavaScript that this static HTML fetch cannot execute; if
- * so, the link-discovery step below needs to be pointed at EDJOIN's
- * underlying JSON search API instead once that endpoint is confirmed.
+ * CONFIRMED (2026-09-21, real GitHub Actions run): the search/listing page
+ * is a server-rendered shell (real title, nav, footer, 46 <script> tags)
+ * but exposes zero job-related links among its anchors -- consistent with
+ * the same client-side-rendered job grid seen on NEOGOV agency microsites.
+ * Listing pages are rendered with a headless browser (lib/browser.js). Job
+ * detail pages, once a URL is known, are still fetched with plain HTTP and
+ * parsed primarily via schema.org JobPosting JSON-LD.
  */
 
 const cheerio = require('cheerio');
-const { fetchText, fetchTextWithMeta, sleep } = require('../lib/fetchHtml');
+const { fetchText, sleep } = require('../lib/fetchHtml');
+const { fetchRenderedHtml } = require('../lib/browser');
 const { extractJobPostings } = require('../lib/jsonld');
 const { cleanSummary } = require('../lib/normalize');
 const { diagnoseEmptyListing } = require('../lib/diagnose');
@@ -33,14 +30,9 @@ async function fetchListings(source) {
 
   for (let page = 1; page <= MAX_PAGES; page++) {
     const pageUrl = withPageParam(source.searchUrl, page);
-    let html;
-    if (page === 1) {
-      const meta = await fetchTextWithMeta(pageUrl);
-      html = meta && meta.text;
-      firstPageFinalUrl = meta && meta.finalUrl;
-    } else {
-      html = await fetchText(pageUrl);
-    }
+    const rendered = await fetchRenderedHtml(pageUrl);
+    const html = rendered && rendered.text;
+    if (page === 1) firstPageFinalUrl = rendered && rendered.finalUrl;
     if (!html) {
       if (page === 1) throw new Error(`Could not load listing page: ${pageUrl}`);
       break;

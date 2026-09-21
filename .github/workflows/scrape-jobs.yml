@@ -39,6 +39,10 @@ jobs:
         working-directory: scraper
         run: npm install --no-audit --no-fund
 
+      - name: Install headless Chromium
+        working-directory: scraper
+        run: npx playwright install --with-deps chromium
+
       - name: Run scraper
         working-directory: scraper
         env:
@@ -59,4 +63,12 @@ jobs:
           fi
           git add data/jobs.json
           git commit -m "chore: refresh IT job listings [skip ci]"
-          git push
+          for attempt in 1 2 3; do
+            if git push; then
+              exit 0
+            fi
+            echo "push rejected (attempt $attempt), rebasing onto latest main and retrying..."
+            git pull --rebase origin main
+          done
+          echo "::error::Could not push updated job data after 3 attempts."
+          exit 1

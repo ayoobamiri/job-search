@@ -3,23 +3,25 @@
 /**
  * Adapter for NEOGOV-powered career sites: governmentjobs.com and
  * schooljobs.com. Both platforms share the same underlying software, so
- * one adapter covers GovernmentJobs.com, SchoolJobs.com/careers/losrios,
+ * one adapter covers GovernmentJobs.com, SchoolJobs.com/careers/losriosccd,
  * governmentjobs.com/careers/elkgrove, and governmentjobs.com/careers/sacramento.
  *
- * ASSUMPTION (unverified in this environment -- this sandbox's network
- * policy blocks outbound requests to governmentjobs.com/schooljobs.com, so
- * the link-discovery selectors below could not be tested against live
- * markup): job detail pages are expected to carry schema.org JobPosting
- * JSON-LD (used for Google for Jobs indexing), which is parsed as the
- * primary, most reliable data source. DOM selectors are only a fallback
- * for when JSON-LD is missing, and a listing page's link-discovery
- * selectors are the most likely thing to need adjusting if NEOGOV's
- * markup differs from what's coded here -- check that first if a run
- * finds 0 jobs from an enabled NEOGOV source.
+ * CONFIRMED (2026-09-21, real GitHub Actions run + a web search cross-check):
+ * agency career-microsite search/listing pages (governmentjobs.com/careers/{agency})
+ * are a server-rendered shell -- real title, nav, footer -- but the actual
+ * job cards are injected by client-side JavaScript after load, so a plain
+ * HTTP fetch never sees them even though the URLs/regex here are correct
+ * (verified real, currently-open postings exist at exactly the URL pattern
+ * this file looks for). Listing pages are therefore rendered with a
+ * headless browser (lib/browser.js). Job *detail* pages, once a URL is
+ * known, are still fetched with plain HTTP -- those were confirmed to
+ * carry real schema.org JobPosting JSON-LD without needing a browser,
+ * which is faster and lighter for the 40-80 detail fetches per source.
  */
 
 const cheerio = require('cheerio');
-const { fetchText, fetchTextWithMeta, sleep } = require('../lib/fetchHtml');
+const { fetchText, sleep } = require('../lib/fetchHtml');
+const { fetchRenderedHtml } = require('../lib/browser');
 const { extractJobPostings } = require('../lib/jsonld');
 const { cleanSummary } = require('../lib/normalize');
 const { diagnoseEmptyListing } = require('../lib/diagnose');
@@ -35,14 +37,9 @@ async function fetchListings(source) {
 
   for (let page = 1; page <= MAX_PAGES; page++) {
     const pageUrl = withPageParam(source.searchUrl, page);
-    let html;
-    if (page === 1) {
-      const meta = await fetchTextWithMeta(pageUrl);
-      html = meta && meta.text;
-      firstPageFinalUrl = meta && meta.finalUrl;
-    } else {
-      html = await fetchText(pageUrl);
-    }
+    const rendered = await fetchRenderedHtml(pageUrl);
+    const html = rendered && rendered.text;
+    if (page === 1) firstPageFinalUrl = rendered && rendered.finalUrl;
     if (!html) {
       if (page === 1) throw new Error(`Could not load listing page: ${pageUrl}`);
       break;

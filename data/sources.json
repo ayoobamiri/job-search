@@ -6,16 +6,16 @@
     "type": "neogov",
     "searchUrl": "https://www.governmentjobs.com/jobs?keywords=information%20technology&location=Sacramento%2C%20CA",
     "enabled": true,
-    "notes": "General statewide GovernmentJobs.com board, pre-filtered to IT keywords near Sacramento."
+    "notes": "General statewide GovernmentJobs.com board. Confirmed 2026-09-21: the keywords= param in this URL is not actually honored by the server-rendered result set (it returns general recent postings regardless), so this source relies entirely on the scraper's own keyword filter downstream -- it's normal for it to return 0 kept jobs on a run where nothing in the raw results happens to be IT-related."
   },
   {
     "id": "losrios-schooljobs",
     "name": "Los Rios Community College District",
-    "website": "GovernmentJobs.com",
+    "website": "SchoolJobs.com",
     "type": "neogov",
-    "searchUrl": "https://www.governmentjobs.com/careers/losrios",
+    "searchUrl": "https://www.schooljobs.com/careers/losriosccd",
     "enabled": true,
-    "notes": "Los Rios CCD career site. A run on 2026-09-21 found schooljobs.com/careers/losrios now redirects to governmentjobs.com's bare homepage (that domain appears retired/consolidated), so this points at the governmentjobs.com equivalent path instead. Unverified -- watch the next run's sourceRunSummary to confirm this URL is correct."
+    "notes": "Los Rios CCD career site. The slug is 'losriosccd', not 'losrios' -- confirmed 2026-09-21 via search results for schooljobs.com/careers/losriosccd and governmentjobs.com/ProfileSettings/losriosccd. The old 'losrios' slug redirected to governmentjobs.com's bare homepage."
   },
   {
     "id": "elkgrove-governmentjobs",

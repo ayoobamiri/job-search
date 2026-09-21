@@ -82,38 +82,52 @@ markup (see `scraper/adapters/neogov.js` for the pattern).
 ```bash
 cd scraper
 npm install
+npx playwright install chromium   # one-time browser download, needed for listing pages
 HOME_LAT=38.58 HOME_LON=-121.49 npm run scrape   # HOME_LAT/LON optional
 ```
 
 This overwrites `data/jobs.json`. Open `index.html` with any static file
 server (e.g. `python3 -m http.server`) to view it.
 
-## Known limitations / what to verify once deployed
+## Why listing pages are rendered with a headless browser
 
-This was built in a sandboxed environment whose network policy blocks
-outbound requests to governmentjobs.com, schooljobs.com, and edjoin.org, so
-the scraper's HTML-parsing logic could not be tested against live pages.
-It's built defensively:
+Real run data (2026-09-21) showed that NEOGOV agency career microsites
+(`governmentjobs.com/careers/{agency}`) and EDJOIN serve a fully
+server-rendered page shell — real title, nav, footer, dozens of real links —
+but the actual job-listing grid is injected by client-side JavaScript after
+load, and is completely absent from the raw HTML a plain `fetch()` sees. A
+search-engine cross-check confirmed real, currently-open postings exist at
+exactly the URLs this scraper looks for, so the fix wasn't the URL pattern —
+it was that the page needs to actually run its JavaScript before the job
+list exists to read. `scraper/lib/browser.js` renders listing pages with
+headless Chromium (via [Playwright](https://playwright.dev)) for this
+reason. Job **detail** pages, once a URL is known, are still fetched with
+plain HTTP and parsed via
+[schema.org `JobPosting` JSON-LD](https://schema.org/JobPosting) — those
+were confirmed to carry real structured data without needing a browser,
+which keeps the 40-80 detail fetches per source fast.
 
-- Each adapter's **primary** parsing strategy reads
-  [schema.org `JobPosting` JSON-LD](https://schema.org/JobPosting), which
-  government/education job boards generally publish so listings show up in
-  Google for Jobs — this is far more stable than guessing CSS selectors.
-- A DOM-scraping fallback runs if a detail page has no JSON-LD.
-- Listing-page **link discovery** (finding which URLs are job postings) is
-  the part most likely to need adjustment, since it relies on guessed URL
-  patterns. If a scrape run finds 0 jobs for an enabled source, check
-  `sourceRunSummary` in `data/jobs.json` first — an `"error"` status means
-  the listing page itself couldn't be loaded; an `"ok"` status with
-  `jobsFound: 0` means the page loaded but no job links matched the
-  patterns in `scraper/adapters/*.js`, which is the place to fix.
-- EDJOIN's search results may render via client-side JavaScript that a
-  plain HTML fetch can't execute — if so, `scraper/adapters/edjoin.js`
-  needs to be pointed at EDJOIN's underlying JSON search API instead.
+## Diagnosing a source that returns 0 jobs
 
-Run `npm run scrape` locally (from an environment with normal internet
-access) after first deploying this to confirm each source returns results,
-and adjust the relevant adapter if one comes back empty.
+Check `sourceRunSummary` in `data/jobs.json` first:
+
+- `"error"` with a message mentioning hrefs/anchors means the listing page
+  loaded but no link matched the URL pattern in that adapter — the message
+  lists every distinct href actually seen on the page (digit-containing
+  ones first, since a job posting link almost always embeds a numeric id),
+  which is normally enough to see the real pattern without needing to
+  reproduce the fetch anywhere.
+- `"ok"` with a `filterBreakdown` showing everything dropped by
+  `droppedKeyword` means the source's own search/query params aren't
+  actually filtering server-side (this is expected for GovernmentJobs.com's
+  generic statewide search) — the scraper's own keyword filter is working
+  correctly in that case, it just means none of what came back was IT-related.
+- A redirect note (`[redirected to: ...]`) means the configured URL no
+  longer resolves where expected — the agency likely changed its career
+  site slug or retired the domain (this is what happened with Los Rios).
+
+Run `npm run scrape` locally to reproduce and iterate faster than waiting
+on a scheduled Action run.
 
 ## Deploying the dashboard
 

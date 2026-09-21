@@ -25,6 +25,7 @@ const { matchesItKeyword, resolveCounty, isCountyEnabled } = require('./lib/filt
 const { parseSalary, parseClosingDate, isExpired, normalizeEmploymentType } = require('./lib/normalize');
 const { dedupeJobs } = require('./lib/dedupe');
 const { geocodeCity, haversineMiles } = require('./lib/geocode');
+const { closeBrowser } = require('./lib/browser');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 
@@ -65,6 +66,8 @@ async function main() {
       runSummary.push({ sourceId: source.id, sourceName: source.name, status: 'error', message: err.message, jobsFound: 0 });
     }
   }
+
+  await closeBrowser(); // done with headless rendering; free it before the geocoding pass
 
   const now = new Date();
   const nowIso = now.toISOString();
@@ -174,7 +177,9 @@ function safeIso(dateText) {
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
-main().catch((err) => {
-  console.error('[scrape] fatal error:', err);
-  process.exitCode = 1;
-});
+main()
+  .catch((err) => {
+    console.error('[scrape] fatal error:', err);
+    process.exitCode = 1;
+  })
+  .finally(() => closeBrowser());
