@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-09-21T16:16:43.706Z",
+  "lastUpdated": "2026-09-21T17:15:24.375Z",
   "lastRunStatus": "ok",
   "homeDistanceAvailable": false,
   "sourceRunSummary": [
@@ -14,7 +14,24 @@
         "droppedKeyword": 47,
         "droppedCounty": 0,
         "droppedExpired": 0,
-        "kept": 0
+        "kept": 0,
+        "sampleTitles": [
+          "Senior Personnel Analyst",
+          "Deputy Attorney - Public Defender ",
+          "Associate Engineer",
+          "Deputy Attorney - Alternate Public Defender",
+          "Snow Removal Worker - Extra Help",
+          "Police Officer - Lateral",
+          "Assistant Human Resources Director",
+          "Program Coordinator - Senior Nutrition",
+          "Events Duty Person (Guest Services Associate)",
+          "Committee Assistant I - Senate Committee on Privacy, Digital Tech &amp; Consumer Protection (Sacramento, CA)",
+          "District Representative - Office of Senator Ashby (Sacramento, CA)",
+          "Administrative Officer",
+          "Information Security Analyst III",
+          "Executive Assistant/Scheduler - Office of Senator Hurtado (Sacramento, CA)",
+          "Air Quality Engineer - Assistant/Associate"
+        ]
       }
     },
     {
@@ -28,40 +45,35 @@
         "droppedKeyword": 50,
         "droppedCounty": 0,
         "droppedExpired": 0,
-        "kept": 0
+        "kept": 0,
+        "sampleTitles": [
+          "Account Clerk I (Temporary Pool)",
+          "Account Clerk II (Temporary Pool)",
+          "Account Clerk III (Temporary Pool)",
+          "Accountant",
+          "Accounting Adjunct Assistant Professor Pool",
+          "Adjunct College Nurse Clinician Pool",
+          "Adjunct College Nurse Pool",
+          "Adjunct Counselor Pool",
+          "Adjunct Librarian Pool",
+          "Administration of Justice (SRPSTC) Adjunct Assistant Professor Pool",
+          "Administration of Justice Adjunct Assistant Professor",
+          "Administrative Assistant I",
+          "Administrative Assistant I (Temporary Pool)",
+          "Administrative Assistant II (Temporary Pool)",
+          "Administrative Assistant III"
+        ]
       }
     },
     {
       "sourceId": "elkgrove-governmentjobs",
       "sourceName": "City of Elk Grove",
       "status": "ok",
-      "jobsFound": 1,
-      "filterBreakdown": {
-        "raw": 1,
-        "droppedMissingFields": 0,
-        "droppedKeyword": 1,
-        "droppedCounty": 0,
-        "droppedExpired": 0,
-        "kept": 0
-      }
+      "jobsFound": 0
     },
     {
       "sourceId": "sacramento-governmentjobs",
       "sourceName": "Sacramento County",
-      "status": "ok",
-      "jobsFound": 20,
-      "filterBreakdown": {
-        "raw": 20,
-        "droppedMissingFields": 0,
-        "droppedKeyword": 20,
-        "droppedCounty": 0,
-        "droppedExpired": 0,
-        "kept": 0
-      }
-    },
-    {
-      "sourceId": "edjoin",
-      "sourceName": "EDJOIN",
       "status": "ok",
       "jobsFound": 50,
       "filterBreakdown": {
@@ -70,7 +82,55 @@
         "droppedKeyword": 50,
         "droppedCounty": 0,
         "droppedExpired": 0,
-        "kept": 0
+        "kept": 0,
+        "sampleTitles": [
+          "Accounting Technician",
+          "Activities Therapist",
+          "Administrative Services Officer I ",
+          "Agricultural and Standards Program Aide",
+          "Animal Care Attendant",
+          "Animal Control Officer",
+          "Assistant County Counsel",
+          "Assistant Engineer - Civil Level I/II ",
+          "Assistant Probation Officer",
+          "Associate Civil Engineer *Revised",
+          "Associate Waste Management Specialist",
+          "Attorney - Criminal (Levels I-V) *Revised",
+          "Attorney Level I/II/III/IV - Civil *Revised",
+          "Behavioral Health Peer Specialist",
+          "Building Inspector II "
+        ]
+      }
+    },
+    {
+      "sourceId": "edjoin",
+      "sourceName": "EDJOIN",
+      "status": "ok",
+      "jobsFound": 49,
+      "filterBreakdown": {
+        "raw": 49,
+        "droppedMissingFields": 0,
+        "droppedKeyword": 49,
+        "droppedCounty": 0,
+        "droppedExpired": 0,
+        "kept": 0,
+        "sampleTitles": [
+          "Paraeducator (Substitute) - #675-S",
+          "Paraeducator II/Special Education (3 hours) - Elsinore Elementary School",
+          "Classified Substitute Custodians at Sierra Sands Unified School District",
+          "Cafeteria Worker - Crestmont Elementary School - Pos. #3547",
+          "Math Teacher - Immediate Start",
+          "Special Education Legal Specialist (District Office-Special Education)",
+          "Occupational Therapist, Special Education PC #658",
+          "Educational Interpreter, (Spreckels) Special Education PC# 621",
+          "Warehouse Worker II",
+          "2026-27 High School Diploma Teacher - Salinas Adult School",
+          "Substitute - Instructional Assistant (2026/2027)",
+          "Noon Supervisor - Tompkins Elementary",
+          "2026/2027 Speech & Language Pathologist (TVHS)",
+          "Extended Student Services Aide / Boulder Oaks Elementary School (10010448)",
+          "SHE Program Leader I"
+        ]
       }
     }
   ],
