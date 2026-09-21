@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-09-21T22:04:00.232Z",
+  "lastUpdated": "2026-09-21T22:19:56.542Z",
   "lastRunStatus": "ok",
   "homeDistanceAvailable": false,
   "sourceRunSummary": [
@@ -97,7 +97,7 @@
       "sourceId": "governmentjobs-statewide",
       "sourceName": "GovernmentJobs.com",
       "sourceWebsite": "GovernmentJobs.com",
-      "fetchedAt": "2026-09-21T22:04:00.232Z",
+      "fetchedAt": "2026-09-21T22:19:56.542Z",
       "id": "2e9a1e9fd3f5708f",
       "alsoListedOn": [
         "Sacramento County"
@@ -106,7 +106,7 @@
       "cityLon": -121.493895,
       "distanceMiles": null,
       "firstSeen": "2026-09-21T22:04:00.232Z",
-      "isNew": true
+      "isNew": false
     },
     {
       "title": "Information Technology Manager (ISO)",
@@ -126,14 +126,14 @@
       "sourceId": "governmentjobs-statewide",
       "sourceName": "GovernmentJobs.com",
       "sourceWebsite": "GovernmentJobs.com",
-      "fetchedAt": "2026-09-21T22:04:00.232Z",
+      "fetchedAt": "2026-09-21T22:19:56.542Z",
       "id": "762afb1119e093d0",
       "alsoListedOn": [],
       "cityLat": 38.5810606,
       "cityLon": -121.493895,
       "distanceMiles": null,
       "firstSeen": "2026-09-21T22:04:00.232Z",
-      "isNew": true
+      "isNew": false
     },
     {
       "title": "GIS Specialist I/II",
@@ -153,14 +153,14 @@
       "sourceId": "governmentjobs-statewide",
       "sourceName": "GovernmentJobs.com",
       "sourceWebsite": "GovernmentJobs.com",
-      "fetchedAt": "2026-09-21T22:04:00.232Z",
+      "fetchedAt": "2026-09-21T22:19:56.542Z",
       "id": "5467b0791602f635",
       "alsoListedOn": [],
       "cityLat": 38.5804609,
       "cityLon": -121.530234,
       "distanceMiles": null,
       "firstSeen": "2026-09-21T22:04:00.232Z",
-      "isNew": true
+      "isNew": false
     },
     {
       "title": "GIS Analyst",
@@ -180,14 +180,14 @@
       "sourceId": "governmentjobs-statewide",
       "sourceName": "GovernmentJobs.com",
       "sourceWebsite": "GovernmentJobs.com",
-      "fetchedAt": "2026-09-21T22:04:00.232Z",
+      "fetchedAt": "2026-09-21T22:19:56.542Z",
       "id": "1f7458f8c3d41c35",
       "alsoListedOn": [],
       "cityLat": 38.5810606,
       "cityLon": -121.493895,
       "distanceMiles": null,
       "firstSeen": "2026-09-21T22:04:00.232Z",
-      "isNew": true
+      "isNew": false
     },
     {
       "title": "Computer Information Systems (Cybersecurity) Adjunct Assistant Professor Pool",
@@ -207,14 +207,14 @@
       "sourceId": "losrios-schooljobs",
       "sourceName": "Los Rios Community College District",
       "sourceWebsite": "SchoolJobs.com",
-      "fetchedAt": "2026-09-21T22:04:00.232Z",
+      "fetchedAt": "2026-09-21T22:19:56.542Z",
       "id": "85849f6273acc328",
       "alsoListedOn": [],
       "cityLat": 38.5810606,
       "cityLon": -121.493895,
       "distanceMiles": null,
       "firstSeen": "2026-09-21T22:04:00.232Z",
-      "isNew": true
+      "isNew": false
     },
     {
       "title": "Computer Information Systems Adjunct Assistant Professor Pool",
@@ -234,14 +234,14 @@
       "sourceId": "losrios-schooljobs",
       "sourceName": "Los Rios Community College District",
       "sourceWebsite": "SchoolJobs.com",
-      "fetchedAt": "2026-09-21T22:04:00.232Z",
+      "fetchedAt": "2026-09-21T22:19:56.542Z",
       "id": "c660f8dfb2fc24e6",
       "alsoListedOn": [],
       "cityLat": 38.5810606,
       "cityLon": -121.493895,
       "distanceMiles": null,
       "firstSeen": "2026-09-21T22:04:00.232Z",
-      "isNew": true
+      "isNew": false
     },
     {
       "title": "Computer Science Adjunct Assistant Professor Pool",
@@ -261,14 +261,14 @@
       "sourceId": "losrios-schooljobs",
       "sourceName": "Los Rios Community College District",
       "sourceWebsite": "SchoolJobs.com",
-      "fetchedAt": "2026-09-21T22:04:00.232Z",
+      "fetchedAt": "2026-09-21T22:19:56.542Z",
       "id": "f4d67affab2628dc",
       "alsoListedOn": [],
       "cityLat": 38.5810606,
       "cityLon": -121.493895,
       "distanceMiles": null,
       "firstSeen": "2026-09-21T22:04:00.232Z",
-      "isNew": true
+      "isNew": false
     },
     {
       "title": "Information Technology Applications Analyst III",
@@ -288,14 +288,14 @@
       "sourceId": "sacramento-governmentjobs",
       "sourceName": "Sacramento County",
       "sourceWebsite": "GovernmentJobs.com",
-      "fetchedAt": "2026-09-21T22:04:00.232Z",
+      "fetchedAt": "2026-09-21T22:19:56.542Z",
       "id": "775549e02e6a83ee",
       "alsoListedOn": [],
       "cityLat": 38.5810606,
       "cityLon": -121.493895,
       "distanceMiles": null,
       "firstSeen": "2026-09-21T22:04:00.232Z",
-      "isNew": true
+      "isNew": false
     },
     {
       "title": "Information Technology Applications Analyst Level I/II",
@@ -315,14 +315,14 @@
       "sourceId": "sacramento-governmentjobs",
       "sourceName": "Sacramento County",
       "sourceWebsite": "GovernmentJobs.com",
-      "fetchedAt": "2026-09-21T22:04:00.232Z",
+      "fetchedAt": "2026-09-21T22:19:56.542Z",
       "id": "af32e999b4bc6d7b",
       "alsoListedOn": [],
       "cityLat": 38.5810606,
       "cityLon": -121.493895,
       "distanceMiles": null,
       "firstSeen": "2026-09-21T22:04:00.232Z",
-      "isNew": true
+      "isNew": false
     },
     {
       "title": "Information Technology Business Systems Analyst III",
@@ -342,14 +342,14 @@
       "sourceId": "sacramento-governmentjobs",
       "sourceName": "Sacramento County",
       "sourceWebsite": "GovernmentJobs.com",
-      "fetchedAt": "2026-09-21T22:04:00.232Z",
+      "fetchedAt": "2026-09-21T22:19:56.542Z",
       "id": "740fecbc1e79c0f0",
       "alsoListedOn": [],
       "cityLat": 38.5810606,
       "cityLon": -121.493895,
       "distanceMiles": null,
       "firstSeen": "2026-09-21T22:04:00.232Z",
-      "isNew": true
+      "isNew": false
     },
     {
       "title": "Information Technology Business Systems Analyst Level I/II",
@@ -369,14 +369,14 @@
       "sourceId": "sacramento-governmentjobs",
       "sourceName": "Sacramento County",
       "sourceWebsite": "GovernmentJobs.com",
-      "fetchedAt": "2026-09-21T22:04:00.232Z",
+      "fetchedAt": "2026-09-21T22:19:56.542Z",
       "id": "238e652e9a2d0c4d",
       "alsoListedOn": [],
       "cityLat": 38.5810606,
       "cityLon": -121.493895,
       "distanceMiles": null,
       "firstSeen": "2026-09-21T22:04:00.232Z",
-      "isNew": true
+      "isNew": false
     },
     {
       "title": "Information Technology Infrastructure Analyst Level I/II *Revised",
@@ -396,14 +396,14 @@
       "sourceId": "sacramento-governmentjobs",
       "sourceName": "Sacramento County",
       "sourceWebsite": "GovernmentJobs.com",
-      "fetchedAt": "2026-09-21T22:04:00.232Z",
+      "fetchedAt": "2026-09-21T22:19:56.542Z",
       "id": "05d453dd5dc41e70",
       "alsoListedOn": [],
       "cityLat": 38.5810606,
       "cityLon": -121.493895,
       "distanceMiles": null,
       "firstSeen": "2026-09-21T22:04:00.232Z",
-      "isNew": true
+      "isNew": false
     },
     {
       "title": "Senior IT Specialist (Cloud Infrastructure and AI Solutions Specialist)",
@@ -423,7 +423,7 @@
       "sourceId": "governmentjobs-statewide",
       "sourceName": "GovernmentJobs.com",
       "sourceWebsite": "GovernmentJobs.com",
-      "fetchedAt": "2026-09-21T22:04:00.232Z",
+      "fetchedAt": "2026-09-21T22:19:56.542Z",
       "id": "ef88b142b7b36189",
       "alsoListedOn": [],
       "cityLat": 38.6779591,
