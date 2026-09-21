@@ -29,22 +29,7 @@
     return ageMs >= 0 && ageMs <= sinceDays * DAY_MS;
   }
 
-  var HOURS_PER_MONTH = 173.33; // 40 hrs/week * 52 weeks / 12 months, standard full-time equivalent
-
-  /** Converts a salary figure to a monthly-equivalent for apples-to-apples
-   * filtering/sorting across hourly/monthly/annual postings. Never used
-   * for display -- the original salaryText/min/max/period is always shown
-   * on the card as scraped. Returns null if the period is unknown, since
-   * an unlabeled number can't be safely converted. */
-  function monthlyEquivalent(amount, period) {
-    if (amount == null) return null;
-    if (period === 'hour') return amount * HOURS_PER_MONTH;
-    if (period === 'year') return amount / 12;
-    if (period === 'month') return amount;
-    return null;
-  }
-
-  function filterAndSortJobs(jobs, filters, homeOverride, favorites) {
+  function filterAndSortJobs(jobs, filters) {
     var out = jobs.filter(function (job) {
       if (filters.keyword) {
         var kw = filters.keyword.toLowerCase();
@@ -52,35 +37,6 @@
         if (haystack.indexOf(kw) === -1) return false;
       }
       if (filters.county && job.county !== filters.county) return false;
-      if (filters.city) {
-        if (!job.city || job.city.toLowerCase().indexOf(filters.city.toLowerCase()) === -1) return false;
-      }
-      if (filters.employer) {
-        if (!job.employer || job.employer.toLowerCase().indexOf(filters.employer.toLowerCase()) === -1) return false;
-      }
-      if (filters.source && job.sourceId !== filters.source) return false;
-      if (filters.employmentType && job.employmentType !== filters.employmentType) return false;
-
-      if (filters.salaryMin != null && filters.salaryMin !== '') {
-        var jobMaxMonthly = monthlyEquivalent(job.salaryMax, job.salaryPeriod);
-        if (jobMaxMonthly == null || jobMaxMonthly < monthlyEquivalent(Number(filters.salaryMin), 'month')) return false;
-      }
-      if (filters.salaryMax != null && filters.salaryMax !== '') {
-        var jobMinMonthly = monthlyEquivalent(job.salaryMin, job.salaryPeriod);
-        if (jobMinMonthly == null || jobMinMonthly > monthlyEquivalent(Number(filters.salaryMax), 'month')) return false;
-      }
-
-      if (filters.maxDistance != null && filters.maxDistance !== '') {
-        var dist = global.Distance.effectiveDistance(job, homeOverride);
-        if (dist == null || dist > Number(filters.maxDistance)) return false;
-      }
-
-      if (filters.deadline === 'soon' && !isClosingSoon(job, 7)) return false;
-      if (filters.deadline === '30' && !isClosingSoon(job, 30)) return false;
-      if (filters.deadline === 'nodate' && !job.noClosingDate) return false;
-
-      if (filters.favoritesOnly && favorites.indexOf(job.id) === -1) return false;
-
       return true;
     });
 
@@ -94,13 +50,6 @@
         }
         case 'salary-high':
           return (b.salaryMax ?? b.salaryMin ?? -Infinity) - (a.salaryMax ?? a.salaryMin ?? -Infinity);
-        case 'salary-low':
-          return (a.salaryMin ?? a.salaryMax ?? Infinity) - (b.salaryMin ?? b.salaryMax ?? Infinity);
-        case 'distance': {
-          var adist = global.Distance.effectiveDistance(a, homeOverride);
-          var bdist = global.Distance.effectiveDistance(b, homeOverride);
-          return (adist ?? Infinity) - (bdist ?? Infinity);
-        }
         case 'title':
           return a.title.localeCompare(b.title);
         case 'newest':

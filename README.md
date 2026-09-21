@@ -1,9 +1,12 @@
-# IT Job Search Dashboard
+# IT Job Search
 
-A personal dashboard for finding current Information Technology / Technology
+A simple, personal list of current Information Technology / Technology
 Specialist job openings in **Sacramento, Yolo, Placer, and El Dorado
-Counties**, aggregated from configurable government and education job
-boards. Static frontend + a scheduled scraper, no server required.
+Counties**, aggregated from government and education job boards. Static
+frontend + a scheduled scraper, no server required. The page itself is
+intentionally minimal: search box, county filter, sort, and the job list —
+all source/county/keyword configuration lives in `data/*.json`, edited
+directly in the repo rather than through the UI.
 
 ## How it works
 
@@ -46,36 +49,30 @@ automatically on every scrape run.
 
 ## Setting up your home location (for distance)
 
-Distance is computed two ways, and never by publishing your address:
-
-- **Default (repo-wide):** add `HOME_LAT` and `HOME_LON` as GitHub Actions
-  repo secrets (Settings → Secrets and variables → Actions). The scraper
-  uses them only in memory during the run to compute each job's distance;
-  the coordinates themselves are never written to `jobs.json` or the repo.
-- **Personal override (this browser only):** open **My Job Search** on the
-  dashboard and enter your coordinates under "Home Location." That value
-  is saved only in your browser's `localStorage` and recomputes distance
-  client-side using each job's already-public city coordinates — it's
-  never uploaded anywhere.
+Add `HOME_LAT` and `HOME_LON` as GitHub Actions repo secrets (Settings →
+Secrets and variables → Actions). The scraper uses them only in memory
+during the run to compute each job's distance; the coordinates themselves
+are never written to `jobs.json` or the repo, and never displayed on the
+page — only the resulting mileage is.
 
 ## Managing search sources
 
-Go to **Search Sources** on the dashboard to add, edit, remove, or
-enable/disable a source. Two adapter types are supported out of the box:
+Edit `data/sources.json` directly (add, edit, remove, or set
+`"enabled": false` on an entry) and commit the change — the next scheduled
+run (or the `push:` trigger in `.github/workflows/scrape-jobs.yml`, which
+fires automatically on a `data/sources.json` change) picks it up. Two
+adapter types are supported out of the box:
 
 - `neogov` — any [governmentjobs.com](https://www.governmentjobs.com) or
   [schooljobs.com](https://www.schooljobs.com) career site (these run the
   same NEOGOV platform, so this covers most CA city/county/school agencies).
 - `edjoin` — [edjoin.org](https://www.edjoin.org).
 
-Changes made in the UI are saved to your browser only. To change what the
-**scheduled scraper** actually searches (i.e. what ends up in the shared
-`jobs.json` everyone sees), click **Export Config**, then commit the
-downloaded `sources.json` over `data/sources.json`.
-
-Adding a source with an unsupported platform isn't possible from the UI
+Adding a source with an unsupported platform isn't possible via config
 alone — a new adapter module would need to be written for that platform's
-markup (see `scraper/adapters/neogov.js` for the pattern).
+markup (see `scraper/adapters/neogov.js` for the pattern). Counties
+(`data/counties.json`) and IT keywords (`data/keywords.json`) are edited
+the same way.
 
 ## Running the scraper locally
 
@@ -141,6 +138,32 @@ Check `sourceRunSummary` in `data/jobs.json` first:
 
 Run `npm run scrape` locally to reproduce and iterate faster than waiting
 on a scheduled Action run.
+
+## Known limitation: EDJOIN and Elk Grove undercounting (as of 2026-09-21)
+
+GovernmentJobs.com (generic), Los Rios, and Sacramento County are all
+confirmed working correctly — they scroll through their full lists (up to
+257 postings seen in one run) and correctly find real IT postings when
+any exist.
+
+Two sources are still under-scraped despite several fixes attempted from a
+sandboxed environment with no direct browser access to the live sites:
+
+- **EDJOIN** consistently returns exactly 10 candidates across multiple
+  runs, regardless of `rows=`/`sort=`/`days=` URL params (which had no
+  measurable effect at all) or clicking an exact "Search" button (found
+  nothing to click). EDJOIN has 680+ postings statewide, so this is
+  almost certainly still a scraping gap, not reality — a real EDJOIN
+  posting ("Technology Technician," Sacramento County) was confirmed
+  visible on the live site but has never appeared here.
+- **City of Elk Grove** consistently returns exactly 1 candidate, when at
+  least 3 postings are confirmed open via search-engine results.
+
+Further progress here needs someone with an actual browser to open EDJOIN
+and Elk Grove's career pages, open dev tools' Network tab, and check what
+request fires when more results load (or when the search box is used) —
+then point `scraper/adapters/edjoin.js` / `neogov.js` or
+`scraper/lib/browser.js` at the real mechanism instead of guessing.
 
 ## Deploying the dashboard
 

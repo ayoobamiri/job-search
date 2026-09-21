@@ -34,14 +34,14 @@
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   }
 
-  function jobCardHtml(job, homeOverride, isFavorite) {
+  function jobCardHtml(job) {
     var badges = '';
     if (global.Filters.isNewJob(job)) badges += '<span class="badge badge-new">New</span>';
     if (global.Filters.isClosingSoon(job, 7)) badges += '<span class="badge badge-soon">Closing soon</span>';
     if (job.noClosingDate) badges += '<span class="badge badge-nodate">No closing date provided</span>';
 
     var due = job.noClosingDate ? 'No closing date provided' : (formatDate(job.closingDate) || 'Not provided');
-    var distanceMiles = global.Distance.effectiveDistance(job, homeOverride);
+    var distanceMiles = global.Distance.effectiveDistance(job, null);
     var distanceText = distanceMiles == null ? 'Not provided' : distanceMiles + ' mi';
 
     return (
@@ -51,7 +51,6 @@
             '<h3 class="job-title">' + escapeHtml(job.title) + '</h3>' +
             '<p class="job-employer">' + escapeHtml(job.employer) + ' — ' + escapeHtml(job.city) + (job.county ? ', ' + escapeHtml(job.county) : '') + '</p>' +
           '</div>' +
-          '<button class="favorite-btn' + (isFavorite ? ' active' : '') + '" data-fav-toggle="' + escapeHtml(job.id) + '" title="Save to favorites" aria-label="Save to favorites">' + (isFavorite ? '★' : '☆') + '</button>' +
         '</div>' +
         (badges ? '<div class="badge-row">' + badges + '</div>' : '') +
         '<div class="job-meta-grid">' +

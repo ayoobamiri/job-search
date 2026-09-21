@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>IT Job Search Dashboard — Sacramento Region</title>
-<meta name="description" content="Personal dashboard for finding current Information Technology and Technology Specialist job openings in Sacramento, Yolo, Placer, and El Dorado Counties." />
+<title>IT Job Search — Sacramento Region</title>
+<meta name="description" content="Current Information Technology job openings in Sacramento, Yolo, Placer, and El Dorado Counties, pulled from GovernmentJobs.com, SchoolJobs.com, and EDJOIN." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230a0e17'/%3E%3Cpath d='M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z' fill='none' stroke='%2322d3ee' stroke-width='1.6'/%3E%3Cpath d='M9 12l2 2 4-4' fill='none' stroke='%2334d399' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -17,16 +17,9 @@
     <span class="brand-mark">IT</span>
     <span>
       IT Job Search
-      <small>Sacramento region dashboard</small>
+      <small>Sacramento region</small>
     </span>
   </span>
-
-  <nav class="header-nav" role="tablist" aria-label="Dashboard sections">
-    <button type="button" class="nav-tab active" data-view="dashboard" role="tab" aria-selected="true">Dashboard</button>
-    <button type="button" class="nav-tab" data-view="my-search" role="tab" aria-selected="false">My Job Search</button>
-    <button type="button" class="nav-tab" data-view="sources" role="tab" aria-selected="false">Search Sources</button>
-  </nav>
-
   <div class="header-actions">
     <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle light/dark theme" title="Toggle theme">&#9788;</button>
   </div>
@@ -34,300 +27,49 @@
 
 <main class="app-main">
 
-  <!-- ============================= DASHBOARD ============================= -->
-  <section class="view active" id="view-dashboard">
+  <div id="status-banner-container"></div>
 
-    <div id="status-banner-container"></div>
-
-    <div class="stats-grid" id="stats-grid">
-      <div class="stat-tile accent">
-        <div class="stat-value" id="stat-active">0</div>
-        <div class="stat-label">Active IT Jobs</div>
+  <div class="toolbar">
+    <div class="toolbar-row">
+      <div class="field field-search">
+        <label for="f-keyword">Search within results</label>
+        <input type="text" id="f-keyword" placeholder="e.g. Help Desk, Network Technician" />
       </div>
-      <div class="stat-tile">
-        <div class="stat-value" id="stat-new">0</div>
-        <div class="stat-label">New Jobs</div>
+      <div class="field">
+        <label for="f-county">County</label>
+        <select id="f-county"><option value="">All counties</option></select>
       </div>
-      <div class="stat-tile warn">
-        <div class="stat-value" id="stat-closing-soon">0</div>
-        <div class="stat-label">Closing Soon</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-value" id="stat-sources">0</div>
-        <div class="stat-label">Search Sources</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-value" id="stat-counties">0</div>
-        <div class="stat-label">Counties</div>
+      <div class="field">
+        <label for="f-sort">Sort by</label>
+        <select id="f-sort">
+          <option value="newest">Newest posting</option>
+          <option value="closing">Closing date</option>
+          <option value="salary-high">Salary (high to low)</option>
+          <option value="title">Job title (A-Z)</option>
+        </select>
       </div>
     </div>
-
-    <div class="toolbar">
-      <div class="toolbar-row">
-        <div class="field field-search">
-          <label for="f-keyword">Job title / keyword</label>
-          <input type="text" id="f-keyword" placeholder="e.g. Help Desk, Network Technician" />
-        </div>
-        <div class="field">
-          <label for="f-county">County</label>
-          <select id="f-county"><option value="">All counties</option></select>
-        </div>
-        <div class="field">
-          <label for="f-city">City</label>
-          <input type="text" id="f-city" placeholder="e.g. Davis" />
-        </div>
-        <div class="field">
-          <label for="f-employer">Employer</label>
-          <input type="text" id="f-employer" placeholder="e.g. Sacramento County" />
-        </div>
-        <div class="field">
-          <label for="f-source">Source</label>
-          <select id="f-source"><option value="">All sources</option></select>
-        </div>
-        <div class="field">
-          <label for="f-employment-type">Employment type</label>
-          <select id="f-employment-type">
-            <option value="">Any type</option>
-            <option value="Full-time">Full-time</option>
-            <option value="Part-time">Part-time</option>
-            <option value="Temporary">Temporary</option>
-            <option value="Contract">Contract</option>
-            <option value="Internship">Internship</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="f-salary-min">Min salary ($/month)</label>
-          <input type="number" id="f-salary-min" placeholder="e.g. 4500" min="0" />
-        </div>
-        <div class="field">
-          <label for="f-salary-max">Max salary ($/month)</label>
-          <input type="number" id="f-salary-max" placeholder="e.g. 8000" min="0" />
-        </div>
-        <div class="field">
-          <label for="f-distance">Max distance (mi)</label>
-          <input type="number" id="f-distance" placeholder="Any" min="0" />
-        </div>
-        <div class="field">
-          <label for="f-deadline">Application deadline</label>
-          <select id="f-deadline">
-            <option value="">Any deadline</option>
-            <option value="soon">Closing within 7 days</option>
-            <option value="30">Closing within 30 days</option>
-            <option value="nodate">No closing date provided</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="f-sort">Sort by</label>
-          <select id="f-sort">
-            <option value="newest">Newest posting</option>
-            <option value="closing">Closing date</option>
-            <option value="salary-high">Salary (high to low)</option>
-            <option value="salary-low">Salary (low to high)</option>
-            <option value="distance">Distance from home</option>
-            <option value="title">Job title (A-Z)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="toolbar-actions">
-        <button class="btn btn-primary" id="btn-search" type="button">Search Jobs</button>
-        <button class="btn" id="btn-refresh" type="button">&#8635; Refresh Jobs</button>
-        <button class="btn btn-ghost" id="btn-clear-filters" type="button">Clear filters</button>
-        <label class="checkbox-inline">
-          <input type="checkbox" id="f-favorites-only" />
-          Favorites only
-        </label>
-      </div>
+    <div class="toolbar-actions">
+      <button class="btn" id="btn-refresh" type="button">&#8635; Refresh Jobs</button>
     </div>
+  </div>
 
-    <div class="results-meta">
-      <span id="results-count">0 jobs found</span>
-      <span id="last-updated">Never refreshed</span>
-    </div>
+  <div class="results-meta">
+    <span id="results-count">0 jobs found</span>
+    <span id="last-updated">Never refreshed</span>
+  </div>
 
-    <div class="job-grid" id="job-grid"></div>
-
-    <div class="load-more-row" id="load-more-row" style="display:none;">
-      <button class="btn" id="btn-load-more" type="button">Load more jobs</button>
-    </div>
-
-  </section>
-
-  <!-- ============================= MY JOB SEARCH ============================= -->
-  <section class="view" id="view-my-search">
-
-    <div class="panel">
-      <h2>Home Location</h2>
-      <p class="hint">
-        By default, distance is calculated privately when jobs are scraped (using a home
-        location stored only as a GitHub Actions secret — never committed to this repo or
-        shown on the page). You can optionally override the distance calculation for your
-        own browser only, below. Anything entered here is saved solely in this browser's
-        local storage and is never uploaded anywhere.
-      </p>
-      <div class="form-grid">
-        <div class="field">
-          <label for="s-home-lat">Home latitude (optional override)</label>
-          <input type="number" step="any" id="s-home-lat" placeholder="e.g. 38.58" />
-        </div>
-        <div class="field">
-          <label for="s-home-lon">Home longitude (optional override)</label>
-          <input type="number" step="any" id="s-home-lon" placeholder="e.g. -121.49" />
-        </div>
-      </div>
-      <div class="actions-row">
-        <button class="btn btn-primary" id="btn-save-home">Save home location</button>
-        <button class="btn btn-ghost" id="btn-clear-home">Clear override</button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>Search Counties</h2>
-      <p class="hint">Jobs outside these counties are never shown, even if they match your keywords.</p>
-      <div class="county-list" id="settings-county-list"></div>
-      <div class="actions-row">
-        <input type="text" id="new-county-name" placeholder="Add a county, e.g. Sutter County" class="field-inline" style="flex:1; background:var(--bg-alt); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:9px 10px;" />
-        <button class="btn" id="btn-add-county">Add county</button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>Job Keywords</h2>
-      <p class="hint">A job must match at least one of these title keywords to be included.</p>
-      <div class="tag-editor" id="keyword-tags"></div>
-      <div class="actions-row">
-        <input type="text" id="new-keyword" placeholder="Add a keyword, e.g. Cybersecurity Technician" style="flex:1; background:var(--bg-alt); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:9px 10px;" />
-        <button class="btn" id="btn-add-keyword">Add keyword</button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>Default Search Preferences</h2>
-      <p class="hint">Applied automatically as the starting filters every time you open the dashboard.</p>
-      <div class="form-grid">
-        <div class="field">
-          <label for="s-min-salary">Minimum salary ($/month)</label>
-          <input type="number" id="s-min-salary" min="0" />
-        </div>
-        <div class="field">
-          <label for="s-max-distance">Maximum distance (miles)</label>
-          <input type="number" id="s-max-distance" min="0" />
-        </div>
-      </div>
-      <div class="actions-row">
-        <button class="btn btn-primary" id="btn-save-prefs">Save preferences</button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>Enabled Sources</h2>
-      <p class="hint">Toggle which sources are searched on this dashboard. Manage the full source list under "Search Sources".</p>
-      <div class="source-checklist" id="settings-source-checklist"></div>
-    </div>
-
-  </section>
-
-  <!-- ============================= SOURCES ============================= -->
-  <section class="view" id="view-sources">
-
-    <div class="panel">
-      <h2>Job Search Sources</h2>
-      <p class="hint">
-        Add, edit, remove, or enable/disable the websites this dashboard searches.
-        Changes here update your browser immediately. To change what the scheduled
-        scraper actually fetches (the source of the data in this dashboard), use
-        <strong>Export Config</strong> below and commit the downloaded
-        <code>sources.json</code> to <code>job-search/data/sources.json</code> in the repo.
-      </p>
-
-      <table class="source-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Search URL</th>
-            <th>Enabled</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="sources-table-body"></tbody>
-      </table>
-
-      <form class="source-form" id="add-source-form">
-        <div class="field">
-          <label for="src-name">Source name</label>
-          <input type="text" id="src-name" required placeholder="e.g. City of Roseville" />
-        </div>
-        <div class="field">
-          <label for="src-website">Website label</label>
-          <input type="text" id="src-website" required placeholder="e.g. GovernmentJobs.com" />
-        </div>
-        <div class="field">
-          <label for="src-type">Adapter type</label>
-          <select id="src-type">
-            <option value="neogov">NEOGOV (governmentjobs.com / schooljobs.com)</option>
-            <option value="edjoin">EDJOIN.org</option>
-          </select>
-        </div>
-        <div class="field" style="grid-column: span 2;">
-          <label for="src-url">Search URL</label>
-          <input type="url" id="src-url" required placeholder="https://www.governmentjobs.com/careers/..." />
-        </div>
-        <div class="field" style="align-self:flex-end;">
-          <button class="btn btn-primary" type="submit">Add source</button>
-        </div>
-      </form>
-
-      <div class="actions-row">
-        <button class="btn" id="btn-export-config">Export config (.json)</button>
-        <label class="btn" for="import-config-input" style="cursor:pointer;">Import config (.json)</label>
-        <input type="file" id="import-config-input" accept="application/json" style="display:none;" />
-        <button class="btn btn-ghost" id="btn-reset-sources">Reset to defaults</button>
-      </div>
-    </div>
-
-  </section>
+  <div class="job-grid" id="job-grid"></div>
 
 </main>
 
 <footer class="app-footer">
-  Built as a personal IT job-search dashboard. Job data is fetched only from the sources
-  configured above and refreshed on a schedule — nothing is invented.
+  Jobs are fetched only from GovernmentJobs.com, SchoolJobs.com (Los Rios), City of Elk Grove,
+  Sacramento County, and EDJOIN, filtered to IT-related titles in Sacramento, Yolo, Placer, and
+  El Dorado Counties, and refreshed automatically every few hours. Nothing here is invented —
+  if a posting doesn't list a salary or closing date, that's shown as "Not provided."
 </footer>
 
-<!-- Edit source modal -->
-<div id="edit-source-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center;">
-  <div class="panel" style="max-width:480px; width:92%;">
-    <h2>Edit source</h2>
-    <div class="form-grid">
-      <div class="field" style="grid-column:span 2;">
-        <label for="edit-src-name">Source name</label>
-        <input type="text" id="edit-src-name" />
-      </div>
-      <div class="field" style="grid-column:span 2;">
-        <label for="edit-src-website">Website label</label>
-        <input type="text" id="edit-src-website" />
-      </div>
-      <div class="field">
-        <label for="edit-src-type">Adapter type</label>
-        <select id="edit-src-type">
-          <option value="neogov">NEOGOV</option>
-          <option value="edjoin">EDJOIN.org</option>
-        </select>
-      </div>
-      <div class="field" style="grid-column:span 2;">
-        <label for="edit-src-url">Search URL</label>
-        <input type="url" id="edit-src-url" />
-      </div>
-    </div>
-    <div class="actions-row">
-      <button class="btn btn-primary" id="btn-save-edit-source">Save changes</button>
-      <button class="btn btn-ghost" id="btn-cancel-edit-source">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<script src="js/store.js"></script>
 <script src="js/distance.js"></script>
 <script src="js/filters.js"></script>
 <script src="js/render.js"></script>
