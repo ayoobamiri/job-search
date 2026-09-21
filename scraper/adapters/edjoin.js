@@ -4,12 +4,21 @@
  * Adapter for EDJOIN.org, California's K-12 / education job board.
  *
  * CONFIRMED (2026-09-21, real GitHub Actions run): the search/listing page
- * is a server-rendered shell (real title, nav, footer, 46 <script> tags)
- * but exposes zero job-related links among its anchors -- consistent with
- * the same client-side-rendered job grid seen on NEOGOV agency microsites.
- * Listing pages are rendered with a headless browser (lib/browser.js). Job
- * detail pages, once a URL is known, are still fetched with plain HTTP and
- * parsed primarily via schema.org JobPosting JSON-LD.
+ * is a server-rendered shell but the actual job grid is injected by
+ * client-side JavaScript, so listing pages are rendered with a headless
+ * browser (lib/browser.js), which also scrolls/clicks to load the full
+ * list -- a first pass showed every discovered title was an
+ * alphabetically-sorted slice starting at "A", meaning a `?page=N` URL
+ * param does nothing here and postings further down the alphabet (most
+ * "Technology ..." titles) were never reached with only a single default
+ * page loaded.
+ *
+ * The full list can run into the hundreds of postings, so the visible
+ * listing-link text is matched against the IT keyword list *before*
+ * committing to a full detail fetch -- only candidates that already look
+ * IT-related get a JSON-LD detail fetch, which is what makes this fast
+ * enough to run every few hours. Job detail pages, once a URL is known,
+ * are fetched with plain HTTP and parsed via schema.org JobPosting JSON-LD.
  */
 
 const cheerio = require('cheerio');
@@ -18,51 +27,38 @@ const { fetchRenderedHtml } = require('../lib/browser');
 const { extractJobPostings } = require('../lib/jsonld');
 const { cleanSummary } = require('../lib/normalize');
 const { diagnoseEmptyListing } = require('../lib/diagnose');
+const { matchesItKeyword } = require('../lib/filters');
 
-const MAX_PAGES = 5;
-const MAX_JOBS_PER_SOURCE = 80;
+const MAX_CANDIDATE_JOBS = 150;
 const DETAIL_FETCH_DELAY_MS = 500;
 
-async function fetchListings(source) {
-  const jobUrls = new Set();
-  let firstPageHtml = null;
-  let firstPageFinalUrl = null;
+async function fetchListings(source, keywords) {
+  const rendered = await fetchRenderedHtml(source.searchUrl);
+  const html = rendered && rendered.text;
+  if (!html) throw new Error(`Could not load listing page: ${source.searchUrl}`);
 
-  for (let page = 1; page <= MAX_PAGES; page++) {
-    const pageUrl = withPageParam(source.searchUrl, page);
-    const rendered = await fetchRenderedHtml(pageUrl);
-    const html = rendered && rendered.text;
-    if (page === 1) firstPageFinalUrl = rendered && rendered.finalUrl;
-    if (!html) {
-      if (page === 1) throw new Error(`Could not load listing page: ${pageUrl}`);
-      break;
-    }
-    if (page === 1) firstPageHtml = html;
+  const $ = cheerio.load(html);
+  const candidates = new Map();
 
-    const $ = cheerio.load(html);
-    const before = jobUrls.size;
+  $('a[href]').each((_, el) => {
+    const href = $(el).attr('href');
+    if (!href) return;
+    if (!/JobPosting|JobDetail|\/Jobs\/Details|PostingID=\d+/i.test(href)) return;
+    const url = absoluteUrl(href, source.searchUrl);
+    const text = $(el).text().replace(/\s+/g, ' ').trim();
+    if (text && !candidates.has(url)) candidates.set(url, text);
+  });
 
-    $('a[href]').each((_, el) => {
-      const href = $(el).attr('href');
-      if (!href) return;
-      if (/JobPosting|JobDetail|\/Jobs\/Details|PostingID=\d+/i.test(href)) {
-        jobUrls.add(absoluteUrl(href, source.searchUrl));
-      }
-    });
-
-    const found = jobUrls.size - before;
-    if (found === 0) break;
-    if (jobUrls.size >= MAX_JOBS_PER_SOURCE) break;
+  if (candidates.size === 0) {
+    throw new Error(diagnoseEmptyListing(html, source.searchUrl, rendered.finalUrl));
   }
 
-  if (jobUrls.size === 0) {
-    throw new Error(diagnoseEmptyListing(firstPageHtml, source.searchUrl, firstPageFinalUrl));
-  }
+  const matching = [...candidates.entries()]
+    .filter(([, title]) => matchesItKeyword(title, keywords))
+    .slice(0, MAX_CANDIDATE_JOBS);
 
-  const urls = [...jobUrls].slice(0, MAX_JOBS_PER_SOURCE);
   const jobs = [];
-
-  for (const url of urls) {
+  for (const [url] of matching) {
     try {
       const job = await fetchJobDetail(url, source);
       if (job) jobs.push(job);
@@ -160,17 +156,6 @@ function matchAfterLabel(text, labelRegex) {
 
 function firstNonEmpty(...vals) {
   return vals.find((v) => v && v.trim()) || null;
-}
-
-function withPageParam(searchUrl, page) {
-  if (page === 1) return searchUrl;
-  try {
-    const url = new URL(searchUrl);
-    url.searchParams.set('page', String(page));
-    return url.toString();
-  } catch {
-    return searchUrl;
-  }
 }
 
 function absoluteUrl(href, base) {

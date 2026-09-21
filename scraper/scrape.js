@@ -56,7 +56,7 @@ async function main() {
     }
     console.log(`[scrape] fetching ${source.name} (${source.id})...`);
     try {
-      const jobs = await adapter.fetchListings(source);
+      const jobs = await adapter.fetchListings(source, keywords);
       console.log(`[scrape]   -> ${jobs.length} raw listing(s)`);
       rawJobs.push(...jobs);
       runSummary.push({ sourceId: source.id, sourceName: source.name, status: 'ok', jobsFound: jobs.length });

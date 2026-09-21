@@ -101,11 +101,24 @@ exactly the URLs this scraper looks for, so the fix wasn't the URL pattern —
 it was that the page needs to actually run its JavaScript before the job
 list exists to read. `scraper/lib/browser.js` renders listing pages with
 headless Chromium (via [Playwright](https://playwright.dev)) for this
-reason. Job **detail** pages, once a URL is known, are still fetched with
-plain HTTP and parsed via
+reason.
+
+A first pass at this only ever returned a default-sized, alphabetically
+sorted slice of each list (every source's first observed job titles all
+started with "A") — a `?page=N` URL param does nothing on these
+client-rendered lists, since the real "load more" mechanism is
+scroll/click-driven, not URL-driven. `lib/browser.js` also scrolls to the
+bottom and clicks any "load more"/"next" control it can find, repeating
+until the page stops growing, so the full list loads rather than just its
+first page. That full list can run into the hundreds of postings for a
+source like Sacramento County, so each candidate's *visible listing text*
+is matched against the IT keyword list before committing to a full detail
+fetch — only candidates that already look IT-related from their listing
+title get a JSON-LD detail fetch, which is what keeps this fast enough to
+run every few hours. Job **detail** pages, once a URL is known, are still
+fetched with plain HTTP and parsed via
 [schema.org `JobPosting` JSON-LD](https://schema.org/JobPosting) — those
-were confirmed to carry real structured data without needing a browser,
-which keeps the 40-80 detail fetches per source fast.
+were confirmed to carry real structured data without needing a browser.
 
 ## Diagnosing a source that returns 0 jobs
 
