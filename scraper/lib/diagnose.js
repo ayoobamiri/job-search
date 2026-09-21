@@ -21,13 +21,20 @@ function diagnoseEmptyListing(html, url, finalUrl) {
 
   const redirectNote = finalUrl && finalUrl !== url ? ` [redirected to: ${finalUrl}]` : '';
 
+  // Collect every distinct non-boilerplate href so a job-listing link isn't
+  // missed just because nav/header/footer chrome (sign-in, profile, privacy
+  // policy, etc.) happened to appear first in the DOM. Hrefs containing a
+  // digit are surfaced first since a job posting link almost always embeds
+  // a numeric id -- that's usually the signal worth looking at first.
   const junkHref = /^(#|javascript:|mailto:|tel:)/i;
-  const sampleHrefs = [];
+  const allHrefs = [];
   $('a[href]').each((_, el) => {
-    if (sampleHrefs.length >= 15) return;
     const href = $(el).attr('href');
-    if (href && !junkHref.test(href) && !sampleHrefs.includes(href)) sampleHrefs.push(href);
+    if (href && !junkHref.test(href) && !allHrefs.includes(href)) allHrefs.push(href);
   });
+  const withDigits = allHrefs.filter((h) => /\d/.test(h));
+  const withoutDigits = allHrefs.filter((h) => !/\d/.test(h));
+  const sampleHrefs = [...withDigits, ...withoutDigits].slice(0, 40);
 
   const spaMarkers = [];
   if ($('#root').length || $('#app').length) spaMarkers.push('root/app mount div');
@@ -51,7 +58,9 @@ function diagnoseEmptyListing(html, url, finalUrl) {
         `probably needs to be fetched with a headless browser instead. URL: ${url}`
       : ` Page does not look obviously JS-rendered, so the link-discovery regex in this adapter is ` +
         `probably just matching the wrong URL pattern for this site. URL: ${url}`) +
-    (sampleHrefs.length ? ` Sample hrefs seen: ${JSON.stringify(sampleHrefs)}` : ' No non-trivial hrefs seen at all.')
+    (sampleHrefs.length
+      ? ` ${allHrefs.length} distinct href(s) total, digit-containing ones first: ${JSON.stringify(sampleHrefs)}`
+      : ' No non-trivial hrefs seen at all.')
   );
 }
 

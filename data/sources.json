@@ -11,11 +11,11 @@
   {
     "id": "losrios-schooljobs",
     "name": "Los Rios Community College District",
-    "website": "SchoolJobs.com",
+    "website": "GovernmentJobs.com",
     "type": "neogov",
-    "searchUrl": "https://www.schooljobs.com/careers/losrios",
+    "searchUrl": "https://www.governmentjobs.com/careers/losrios",
     "enabled": true,
-    "notes": "Los Rios CCD career site (SchoolJobs.com, same NEOGOV platform as GovernmentJobs.com)."
+    "notes": "Los Rios CCD career site. A run on 2026-09-21 found schooljobs.com/careers/losrios now redirects to governmentjobs.com's bare homepage (that domain appears retired/consolidated), so this points at the governmentjobs.com equivalent path instead. Unverified -- watch the next run's sourceRunSummary to confirm this URL is correct."
   },
   {
     "id": "elkgrove-governmentjobs",
