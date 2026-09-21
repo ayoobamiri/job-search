@@ -61,6 +61,7 @@ async function main() {
       runSummary.push({ sourceId: source.id, sourceName: source.name, status: 'ok', jobsFound: jobs.length });
     } catch (err) {
       console.error(`[scrape]   error fetching ${source.name}: ${err.message}`);
+      if (err.stack) console.error(err.stack); // full trace in Action logs; jobs.json only keeps the message
       runSummary.push({ sourceId: source.id, sourceName: source.name, status: 'error', message: err.message, jobsFound: 0 });
     }
   }

@@ -20,6 +20,7 @@ const cheerio = require('cheerio');
 const { fetchText, sleep } = require('../lib/fetchHtml');
 const { extractJobPostings } = require('../lib/jsonld');
 const { cleanSummary } = require('../lib/normalize');
+const { diagnoseEmptyListing } = require('../lib/diagnose');
 
 const MAX_PAGES = 5;
 const MAX_JOBS_PER_SOURCE = 80;
@@ -27,6 +28,7 @@ const DETAIL_FETCH_DELAY_MS = 500;
 
 async function fetchListings(source) {
   const jobUrls = new Set();
+  let firstPageHtml = null;
 
   for (let page = 1; page <= MAX_PAGES; page++) {
     const pageUrl = withPageParam(source.searchUrl, page);
@@ -35,6 +37,7 @@ async function fetchListings(source) {
       if (page === 1) throw new Error(`Could not load listing page: ${pageUrl}`);
       break;
     }
+    if (page === 1) firstPageHtml = html;
 
     const $ = cheerio.load(html);
     const before = jobUrls.size;
@@ -52,12 +55,20 @@ async function fetchListings(source) {
     if (jobUrls.size >= MAX_JOBS_PER_SOURCE) break;
   }
 
+  if (jobUrls.size === 0) {
+    throw new Error(diagnoseEmptyListing(firstPageHtml, source.searchUrl));
+  }
+
   const urls = [...jobUrls].slice(0, MAX_JOBS_PER_SOURCE);
   const jobs = [];
 
   for (const url of urls) {
-    const job = await fetchJobDetail(url, source);
-    if (job) jobs.push(job);
+    try {
+      const job = await fetchJobDetail(url, source);
+      if (job) jobs.push(job);
+    } catch (err) {
+      console.warn(`[edjoin] skipping ${url}: ${err.message}`);
+    }
     await sleep(DETAIL_FETCH_DELAY_MS);
   }
 
