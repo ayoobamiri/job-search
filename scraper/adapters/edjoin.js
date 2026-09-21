@@ -48,9 +48,16 @@ async function fetchListings(source, keywords) {
     throw new Error(diagnoseEmptyListing(rendered.text, source.searchUrl, rendered.finalUrl));
   }
 
+  const allTitles = [...candidates.values()];
+  console.log(
+    `[edjoin] ${source.id}: ${candidates.size} candidate link(s) after scroll. ` +
+      `First 5: ${JSON.stringify(allTitles.slice(0, 5))} | Last 5: ${JSON.stringify(allTitles.slice(-5))}`
+  );
+
   const matching = [...candidates.entries()]
     .filter(([, title]) => matchesItKeyword(title, keywords))
     .slice(0, MAX_CANDIDATE_JOBS);
+  console.log(`[edjoin] ${source.id}: ${matching.length} matched an IT keyword: ${JSON.stringify(matching.map(([, t]) => t))}`);
 
   const jobs = [];
   for (const [url] of matching) {
