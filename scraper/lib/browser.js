@@ -63,6 +63,7 @@ async function fetchRenderedHtml(url, { waitAfterLoadMs = 6000, timeoutMs = 3000
       // so treat it as best-effort rather than something we wait strictly for.
       await page.waitForLoadState('networkidle', { timeout: timeoutMs }).catch(() => {});
       await page.waitForTimeout(waitAfterLoadMs);
+      await submitSearchIfPresent(page);
 
       const anchors = await loadFullList(page, maxLoadSteps);
 
@@ -144,6 +145,34 @@ function scrollAllScrollableElements(page) {
       }
     })
     .catch(() => {});
+}
+
+/**
+ * Some career sites show only a small default/preview list until a search
+ * is actually submitted (even a blank one) -- confirmed necessary for
+ * EDJOIN, whose bare /Home/Jobs URL only ever surfaces 10 items
+ * regardless of query-string parameters, despite the site having
+ * hundreds of statewide postings. Clicks an exact "Search" button/submit
+ * input if one is visible, then gives the results a moment to load. Only
+ * matches exact "search" text/labels (not e.g. "Advanced Search
+ * Options") to avoid clicking something unrelated.
+ */
+async function submitSearchIfPresent(page) {
+  try {
+    const button = page.getByRole('button', { name: /^search$/i }).first();
+    if (await button.isVisible({ timeout: 500 }).catch(() => false)) {
+      await button.click({ timeout: 1500 }).catch(() => {});
+      await page.waitForTimeout(1500);
+      return;
+    }
+    const submitInput = page.locator('input[type="submit"][value="search" i]').first();
+    if (await submitInput.isVisible({ timeout: 500 }).catch(() => false)) {
+      await submitInput.click({ timeout: 1500 }).catch(() => {});
+      await page.waitForTimeout(1500);
+    }
+  } catch {
+    // No search form to submit -- fine, most sources show full results without one.
+  }
 }
 
 async function clickLoadMoreIfPresent(page) {
