@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-09-21T19:54:14.520Z",
+  "lastUpdated": "2026-09-21T20:10:39.329Z",
   "lastRunStatus": "ok",
   "homeDistanceAvailable": false,
   "sourceRunSummary": [
@@ -64,14 +64,14 @@
       "sourceId": "governmentjobs-statewide",
       "sourceName": "GovernmentJobs.com",
       "sourceWebsite": "GovernmentJobs.com",
-      "fetchedAt": "2026-09-21T19:54:14.520Z",
+      "fetchedAt": "2026-09-21T20:10:39.329Z",
       "id": "ef88b142b7b36189",
       "alsoListedOn": [],
       "cityLat": 38.6779591,
       "cityLon": -121.176058,
       "distanceMiles": null,
       "firstSeen": "2026-09-21T19:54:14.520Z",
-      "isNew": true
+      "isNew": false
     }
   ]
 }
