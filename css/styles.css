@@ -39,33 +39,6 @@
   color-scheme: dark;
 }
 
-:root[data-theme="light"] {
-  --bg: #f5f7fb;
-  --bg-alt: #eef1f7;
-  --surface: #ffffff;
-  --surface-hover: #f2f5fa;
-  --border: #dde3ee;
-  --border-strong: #c6cee0;
-
-  --text: #131a2a;
-  --text-dim: #4b5872;
-  --text-mute: #7c88a0;
-
-  --accent: #0891a8;
-  --accent-2: #0f9d68;
-  --accent-soft: rgba(8, 145, 168, 0.08);
-  --accent-border: rgba(8, 145, 168, 0.3);
-
-  --warn: #b45309;
-  --warn-soft: rgba(180, 83, 9, 0.1);
-  --danger: #dc2626;
-  --danger-soft: rgba(220, 38, 38, 0.1);
-
-  --shadow-sm: 0 1px 2px rgba(20,30,50,0.06);
-  --shadow-md: 0 8px 24px rgba(20,30,50,0.08);
-  color-scheme: light;
-}
-
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 
@@ -116,22 +89,6 @@ button { font-family: inherit; }
   display: block; font-weight: 500; font-size: 0.72rem; color: var(--text-mute);
 }
 
-.header-actions {
-  margin-left: auto;
-  display: flex; align-items: center; gap: 10px;
-}
-
-.icon-btn {
-  width: 38px; height: 38px;
-  display: grid; place-items: center;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-dim);
-  cursor: pointer;
-}
-.icon-btn:hover { color: var(--text); border-color: var(--border-strong); }
-
 /* ==========================================================================
    Layout
    ========================================================================== */
@@ -154,69 +111,6 @@ button { font-family: inherit; }
 .status-banner.warn { border-color: var(--warn); background: var(--warn-soft); color: var(--text); }
 .status-banner.error { border-color: var(--danger); background: var(--danger-soft); color: var(--text); }
 .status-banner strong { color: var(--text); }
-
-/* ==========================================================================
-   Toolbar / filters
-   ========================================================================== */
-.toolbar {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 18px;
-  margin-bottom: 20px;
-}
-.toolbar-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
-}
-.field {
-  display: flex; flex-direction: column; gap: 5px;
-}
-.field label {
-  font-size: 0.74rem; font-weight: 600; color: var(--text-mute);
-  text-transform: uppercase; letter-spacing: 0.03em;
-}
-.field input, .field select {
-  background: var(--bg-alt);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: var(--radius-sm);
-  padding: 9px 10px;
-  font-size: 0.88rem;
-  width: 100%;
-}
-.field input:focus, .field select:focus {
-  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
-}
-.field-search { grid-column: span 2; }
-
-.toolbar-actions {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-}
-
-.btn {
-  border: 1px solid var(--border-strong);
-  background: var(--surface-hover);
-  color: var(--text);
-  padding: 9px 16px;
-  border-radius: 999px;
-  font-size: 0.86rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex; align-items: center; gap: 6px;
-  transition: transform 0.12s var(--ease), border-color 0.12s var(--ease);
-}
-.btn:hover { border-color: var(--accent-border); }
-.btn:active { transform: scale(0.97); }
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #05202a; border-color: transparent;
-}
-.btn-ghost { background: transparent; }
 
 /* ==========================================================================
    Job cards
@@ -319,7 +213,6 @@ footer.app-footer {
 @media (max-width: 720px) {
   .app-header { padding: 0 12px; gap: 8px; }
   .brand small { display: none; }
-  .field-search { grid-column: span 1; }
   .job-grid { grid-template-columns: 1fr; }
   .job-meta-grid { grid-template-columns: 1fr 1fr; }
 }

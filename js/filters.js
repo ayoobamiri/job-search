@@ -1,9 +1,7 @@
 /**
- * Client-side filtering & sorting over the already-scraped, already
- * county/keyword-filtered, already expiration-filtered job list in
- * data/jobs.json. This module only narrows further based on what the
- * visitor typed into the toolbar -- it never adds jobs that weren't in
- * the source data.
+ * Sorting (newest first) plus the "new"/"closing soon" badge logic, over
+ * the already-scraped, already county/keyword-filtered, already
+ * expiration-filtered job list in data/jobs.json.
  */
 (function (global) {
   'use strict';
@@ -29,36 +27,10 @@
     return ageMs >= 0 && ageMs <= sinceDays * DAY_MS;
   }
 
-  function filterAndSortJobs(jobs, filters) {
-    var out = jobs.filter(function (job) {
-      if (filters.keyword) {
-        var kw = filters.keyword.toLowerCase();
-        var haystack = (job.title + ' ' + job.employer + ' ' + (job.summary || '')).toLowerCase();
-        if (haystack.indexOf(kw) === -1) return false;
-      }
-      if (filters.county && job.county !== filters.county) return false;
-      return true;
+  function filterAndSortJobs(jobs) {
+    return jobs.slice().sort(function (a, b) {
+      return new Date(b.firstSeen || 0) - new Date(a.firstSeen || 0);
     });
-
-    var sortKey = filters.sort || 'newest';
-    out.sort(function (a, b) {
-      switch (sortKey) {
-        case 'closing': {
-          var ad = a.closingDate ? new Date(a.closingDate).getTime() : Infinity;
-          var bd = b.closingDate ? new Date(b.closingDate).getTime() : Infinity;
-          return ad - bd;
-        }
-        case 'salary-high':
-          return (b.salaryMax ?? b.salaryMin ?? -Infinity) - (a.salaryMax ?? a.salaryMin ?? -Infinity);
-        case 'title':
-          return a.title.localeCompare(b.title);
-        case 'newest':
-        default:
-          return new Date(b.firstSeen || 0) - new Date(a.firstSeen || 0);
-      }
-    });
-
-    return out;
   }
 
   global.Filters = {
