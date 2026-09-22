@@ -139,31 +139,30 @@ Check `sourceRunSummary` in `data/jobs.json` first:
 Run `npm run scrape` locally to reproduce and iterate faster than waiting
 on a scheduled Action run.
 
-## Known limitation: EDJOIN and Elk Grove undercounting (as of 2026-09-21)
+## Known limitation: Elk Grove undercounting (as of 2026-09-21)
 
 GovernmentJobs.com (generic), Los Rios, and Sacramento County are all
 confirmed working correctly — they scroll through their full lists (up to
 257 postings seen in one run) and correctly find real IT postings when
 any exist.
 
-Two sources are still under-scraped despite several fixes attempted from a
-sandboxed environment with no direct browser access to the live sites:
+EDJOIN was also stuck at exactly 10 candidates through several earlier fix
+attempts, regardless of `rows=`/`sort=`/`days=` URL params or clicking a
+"Search" button. **Fixed 2026-09-21**: request/response logging found the
+listing page's search box actually calls a separate internal JSON API,
+`/Home/LoadJobs`, which ignores the outer page's URL query params
+entirely. `scraper/adapters/edjoin.js` now calls that API directly per IT
+keyword (no headless browser needed for this source anymore) and filters
+by each posting's own `countyName` field.
 
-- **EDJOIN** consistently returns exactly 10 candidates across multiple
-  runs, regardless of `rows=`/`sort=`/`days=` URL params (which had no
-  measurable effect at all) or clicking an exact "Search" button (found
-  nothing to click). EDJOIN has 680+ postings statewide, so this is
-  almost certainly still a scraping gap, not reality — a real EDJOIN
-  posting ("Technology Technician," Sacramento County) was confirmed
-  visible on the live site but has never appeared here.
-- **City of Elk Grove** consistently returns exactly 1 candidate, when at
-  least 3 postings are confirmed open via search-engine results.
-
-Further progress here needs someone with an actual browser to open EDJOIN
-and Elk Grove's career pages, open dev tools' Network tab, and check what
-request fires when more results load (or when the search box is used) —
-then point `scraper/adapters/edjoin.js` / `neogov.js` or
-`scraper/lib/browser.js` at the real mechanism instead of guessing.
+**City of Elk Grove** (a NEOGOV/GovernmentJobs.com source) still
+consistently returns exactly 1 candidate, when at least 3 postings are
+confirmed open via search-engine results, despite the same scroll-based
+code finding 86–257 candidates on other NEOGOV sites. Further progress
+here needs someone with an actual browser to open Elk Grove's career page,
+check dev tools' Network tab for what request fires when more results
+load, and point `scraper/adapters/neogov.js` / `scraper/lib/browser.js` at
+the real mechanism instead of guessing.
 
 ## Deploying the dashboard
 

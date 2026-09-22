@@ -1,18 +1,21 @@
 'use strict';
 
 /**
- * Shared headless-Chromium helper. Real run data (2026-09-21) confirmed
- * that NEOGOV agency career microsites (governmentjobs.com/careers/{agency})
- * and EDJOIN serve a server-rendered page shell -- real title, nav, footer,
- * dozens of real links -- but the actual job-listing grid is injected by
- * client-side JavaScript after load and is completely absent from the raw
- * HTML a plain fetch() sees. A search-engine check confirmed real, currently
- * open IT postings exist on these exact pages with URLs matching this
- * adapter's regex, so the fix isn't the URL or the pattern -- it's that the
- * listing page needs to actually run its JavaScript before it can be read.
- * Job *detail* pages (once a URL is known) are still fetched with plain
- * HTTP, since those were confirmed to carry real schema.org JobPosting
- * JSON-LD without needing a browser.
+ * Shared headless-Chromium helper, used by adapters/neogov.js. Real run
+ * data (2026-09-21) confirmed that NEOGOV agency career microsites
+ * (governmentjobs.com/careers/{agency}) serve a server-rendered page shell
+ * -- real title, nav, footer, dozens of real links -- but the actual
+ * job-listing grid is injected by client-side JavaScript after load and is
+ * completely absent from the raw HTML a plain fetch() sees. A search-engine
+ * check confirmed real, currently open IT postings exist on these exact
+ * pages with URLs matching this adapter's regex, so the fix isn't the URL
+ * or the pattern -- it's that the listing page needs to actually run its
+ * JavaScript before it can be read. Job *detail* pages (once a URL is
+ * known) are still fetched with plain HTTP, since those were confirmed to
+ * carry real schema.org JobPosting JSON-LD without needing a browser.
+ *
+ * adapters/edjoin.js no longer uses this module -- it calls EDJOIN's own
+ * internal JSON API directly over plain HTTP instead (see that file).
  */
 
 const { chromium } = require('playwright');
@@ -179,13 +182,14 @@ function scrollAllScrollableElements(page) {
 
 /**
  * Some career sites show only a small default/preview list until a search
- * is actually submitted (even a blank one) -- confirmed necessary for
- * EDJOIN, whose bare /Home/Jobs URL only ever surfaces 10 items
- * regardless of query-string parameters, despite the site having
- * hundreds of statewide postings. Clicks an exact "Search" button/submit
- * input if one is visible, then gives the results a moment to load. Only
- * matches exact "search" text/labels (not e.g. "Advanced Search
- * Options") to avoid clicking something unrelated.
+ * is actually submitted (even a blank one) -- this was the first
+ * hypothesis tried for EDJOIN's stuck-at-10-candidates issue (see
+ * adapters/edjoin.js, which no longer uses this browser path at all now
+ * that its real internal JSON API is known). Left in place for any future
+ * NEOGOV source that turns out to need it. Clicks an exact "Search"
+ * button/submit input if one is visible, then gives the results a moment
+ * to load. Only matches exact "search" text/labels (not e.g. "Advanced
+ * Search Options") to avoid clicking something unrelated.
  */
 async function submitSearchIfPresent(page) {
   try {

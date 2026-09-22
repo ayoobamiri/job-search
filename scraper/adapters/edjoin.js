@@ -3,173 +3,188 @@
 /**
  * Adapter for EDJOIN.org, California's K-12 / education job board.
  *
- * CONFIRMED (2026-09-21, real GitHub Actions run): the search/listing page
- * is a server-rendered shell but the actual job grid is injected by
- * client-side JavaScript, so listing pages are rendered with a headless
- * browser (lib/browser.js), which also scrolls/clicks to load the full
- * list -- a first pass showed every discovered title was an
- * alphabetically-sorted slice starting at "A", meaning a `?page=N` URL
- * param does nothing here and postings further down the alphabet (most
- * "Technology ..." titles) were never reached with only a single default
- * page loaded.
+ * CONFIRMED (2026-09-21, real GitHub Actions run, request/response
+ * logging via lib/browser.js's diagnostic logger): the listing page's own
+ * "Search" control fires an internal JSON API, `GET /Home/LoadJobs`, which
+ * is what actually serves job data -- the outer page's HTML/URL query
+ * params are cosmetic only and are not what a real search submission uses.
+ * That response's `data` array carries every field this adapter needs
+ * (title, district, city, salary, dates, employment type, summary) plus
+ * each posting's own `countyName`/`countyID`, confirmed against three real
+ * records (Kern=15, Los Angeles=19, Riverside=33, matching standard
+ * alphabetical CA county numbering). Filtering to target counties uses
+ * each posting's own `countyName` rather than a city-name lookup, since
+ * EDJOIN postings span far more CA cities than any curated map could
+ * reasonably cover.
  *
- * The full list can run into the hundreds of postings, so the visible
- * listing-link text is matched against the IT keyword list *before*
- * committing to a full detail fetch -- only candidates that already look
- * IT-related get a JSON-LD detail fetch, which is what makes this fast
- * enough to run every few hours. Job detail pages, once a URL is known,
- * are fetched with plain HTTP and parsed via schema.org JobPosting JSON-LD.
+ * This means no headless browser is needed for EDJOIN at all -- the API is
+ * called directly with plain HTTP, once per IT keyword (the `keywords`
+ * param name is exactly what the response's own echoed `search` object
+ * uses, i.e. it is the real parameter the site's search box populates),
+ * paginating a keyword's results if it has more than one page. The
+ * response already contains full posting detail, so unlike neogov.js there
+ * is no separate per-job detail-page fetch step.
  */
 
-const cheerio = require('cheerio');
 const { fetchText, sleep } = require('../lib/fetchHtml');
-const { fetchRenderedHtml } = require('../lib/browser');
-const { extractJobPostings } = require('../lib/jsonld');
 const { cleanSummary } = require('../lib/normalize');
-const { diagnoseEmptyListing } = require('../lib/diagnose');
-const { matchesItKeyword } = require('../lib/filters');
 
-const MAX_CANDIDATE_JOBS = 150;
-const DETAIL_FETCH_DELAY_MS = 500;
+const API_URL = 'https://www.edjoin.org/Home/LoadJobs';
+const ROWS_PER_PAGE = 200;
+const MAX_PAGES_PER_KEYWORD = 3;
+const REQUEST_DELAY_MS = 250;
 
-async function fetchListings(source, keywords) {
-  // logRequests: diagnostic only, to find the real API call EDJOIN's search
-  // box fires (its bare /Home/Jobs URL has stayed stuck at exactly 10
-  // candidates through several other fixes -- see README's "Known
-  // limitation" section). Safe to remove once that's understood.
-  const rendered = await fetchRenderedHtml(source.searchUrl, { logRequests: true });
-  if (!rendered) throw new Error(`Could not load listing page: ${source.searchUrl}`);
-
-  const candidates = new Map();
-  for (const [href, text] of rendered.anchors) {
-    if (!href) continue;
-    if (!/JobPosting|JobDetail|\/Jobs\/Details|PostingID=\d+/i.test(href)) continue;
-    const url = absoluteUrl(href, source.searchUrl);
-    if (text && !candidates.has(url)) candidates.set(url, text);
-  }
-
-  if (candidates.size === 0) {
-    throw new Error(diagnoseEmptyListing(rendered.text, source.searchUrl, rendered.finalUrl));
-  }
-
-  const allTitles = [...candidates.values()];
-  console.log(
-    `[edjoin] ${source.id}: ${candidates.size} candidate link(s) after scroll. ` +
-      `First 5: ${JSON.stringify(allTitles.slice(0, 5))} | Last 5: ${JSON.stringify(allTitles.slice(-5))}`
+async function fetchListings(source, keywords, counties) {
+  const targetCounties = new Set(
+    (counties || [])
+      .filter((c) => c.enabled)
+      .map((c) => c.name.replace(/\s+County$/i, '').trim().toLowerCase())
   );
 
-  const matching = [...candidates.entries()]
-    .filter(([, title]) => matchesItKeyword(title, keywords))
-    .slice(0, MAX_CANDIDATE_JOBS);
-  console.log(`[edjoin] ${source.id}: ${matching.length} matched an IT keyword: ${JSON.stringify(matching.map(([, t]) => t))}`);
+  const byPostingId = new Map();
+  const keywordStats = [];
 
-  const jobs = [];
-  for (const [url] of matching) {
-    try {
-      const job = await fetchJobDetail(url, source);
-      if (job) jobs.push(job);
-    } catch (err) {
-      console.warn(`[edjoin] skipping ${url}: ${err.message}`);
-    }
-    await sleep(DETAIL_FETCH_DELAY_MS);
+  for (const keyword of keywords) {
+    let page = 1;
+    let totalPages = 1;
+    let totalRecords = null;
+
+    do {
+      const url = buildUrl(keyword, page);
+      const body = await fetchText(url, {
+        headers: {
+          Accept: 'application/json, text/javascript, */*; q=0.01',
+          'X-Requested-With': 'XMLHttpRequest',
+          Referer: source.searchUrl,
+        },
+      });
+      if (!body) break;
+
+      let parsed;
+      try {
+        parsed = JSON.parse(body);
+      } catch (err) {
+        console.warn(`[edjoin] non-JSON response for keyword "${keyword}" page ${page}: ${err.message}`);
+        break;
+      }
+
+      if (totalRecords === null) totalRecords = parsed.totalRecords || 0;
+      const data = Array.isArray(parsed.data) ? parsed.data : [];
+      for (const rec of data) {
+        if (rec && rec.postingID != null && !byPostingId.has(rec.postingID)) {
+          byPostingId.set(rec.postingID, rec);
+        }
+      }
+
+      totalPages = parsed.totalPages || 1;
+      page++;
+      await sleep(REQUEST_DELAY_MS);
+    } while (page <= totalPages && page <= MAX_PAGES_PER_KEYWORD);
+
+    keywordStats.push({ keyword, totalRecords });
   }
 
+  // Statewide totalRecords for an unfiltered call was 16133 (confirmed
+  // 2026-09-21). If a keyword's own totalRecords comes back at/near that
+  // same number, the `keywords` param likely isn't actually filtering
+  // server-side for that query -- surfaced here so a future run's logs can
+  // confirm or rule that out without another debugging round-trip.
+  const suspicious = keywordStats.filter((s) => s.totalRecords != null && s.totalRecords > 5000);
+  if (suspicious.length > 0) {
+    console.warn(
+      `[edjoin] ${source.id}: ${suspicious.length} keyword(s) returned suspiciously high totalRecords ` +
+        `(keywords param may not be filtering server-side): ${JSON.stringify(suspicious.slice(0, 5))}`
+    );
+  }
+
+  console.log(`[edjoin] ${source.id}: ${byPostingId.size} unique posting(s) across ${keywords.length} keyword queries`);
+
+  const jobs = [];
+  for (const rec of byPostingId.values()) {
+    const countyKey = rec.countyName ? String(rec.countyName).trim().toLowerCase() : null;
+    if (targetCounties.size > 0 && (!countyKey || !targetCounties.has(countyKey))) continue;
+    jobs.push(normalizeRecord(rec, source));
+  }
+
+  console.log(`[edjoin] ${source.id}: ${jobs.length} posting(s) kept after county filter`);
   return jobs;
 }
 
-async function fetchJobDetail(url, source) {
-  const html = await fetchText(url);
-  if (!html) return null;
-
-  const postings = extractJobPostings(html);
-  if (postings.length > 0) {
-    try {
-      return normalizeFromJsonLd(postings[0], url, source);
-    } catch (err) {
-      const snapshot = JSON.stringify(postings[0]).slice(0, 800);
-      err.message = `${err.message} | posting JSON-LD: ${snapshot}`;
-      throw err;
-    }
-  }
-  return normalizeFromDom(html, url, source);
+function buildUrl(keyword, page) {
+  const params = new URLSearchParams({
+    rows: String(ROWS_PER_PAGE),
+    page: String(page),
+    sort: 'postingDate',
+    sortVal: '0',
+    order: 'desc',
+    keywords: keyword,
+    location: '',
+    searchType: 'all',
+    regions: '',
+    jobTypes: '',
+    days: '0',
+    empType: '',
+    catID: '0',
+    onlineApps: '',
+    recruitmentCenterID: '0',
+    stateID: '0',
+    regionID: '0',
+    districtID: '0',
+    searchID: '0',
+    _: String(Date.now()),
+  });
+  return `${API_URL}?${params.toString()}`;
 }
 
-function normalizeFromJsonLd(posting, url, source) {
-  const location = Array.isArray(posting.jobLocation) ? posting.jobLocation[0] : posting.jobLocation;
-  const address = location && location.address;
-  const city = address ? address.addressLocality : null;
-
-  const salaryValue = posting.baseSalary && posting.baseSalary.value;
-  let salaryText = null;
-  if (salaryValue) {
-    if (salaryValue.minValue != null && salaryValue.maxValue != null) {
-      salaryText = `$${salaryValue.minValue} - $${salaryValue.maxValue} ${(salaryValue.unitText || '').toLowerCase()}`.trim();
-    } else if (salaryValue.value != null) {
-      salaryText = `$${salaryValue.value} ${(salaryValue.unitText || '').toLowerCase()}`.trim();
-    }
-  }
-
-  const employer = (posting.hiringOrganization && posting.hiringOrganization.name) || source.name;
-
+function normalizeRecord(rec, source) {
   return {
-    title: posting.title || null,
-    employer,
-    city,
-    salaryText,
-    closingDateText: posting.validThrough || null,
-    postedDateText: posting.datePosted || null,
-    employmentType: posting.employmentType || null,
-    summary: cleanSummary(posting.description),
-    applyUrl: posting.url || url,
+    title: rec.positionTitle || null,
+    employer: rec.districtName || source.name,
+    city: rec.city || null,
+    county: rec.countyName ? `${rec.countyName} County` : null,
+    salaryText: buildSalaryText(rec),
+    closingDateText: rec.displayFlag === 'By Date' ? parseDotNetDate(rec.displayUntil) : null,
+    postedDateText: parseDotNetDate(rec.postingDate),
+    employmentType: rec.FullTimePartTime || null,
+    summary: cleanSummary(rec.JobSummary),
+    applyUrl: `https://www.edjoin.org/Home/JobPosting/${rec.postingID}`,
     sourceId: source.id,
     sourceName: source.name,
     sourceWebsite: source.website,
   };
 }
 
-function normalizeFromDom(html, url, source) {
-  const $ = cheerio.load(html);
-  const title = firstNonEmpty($('h1').text(), $('title').text());
-  if (!title) return null;
-
-  const bodyText = $('body').text().replace(/\s+/g, ' ');
-  const employerMatch = matchAfterLabel(bodyText, /district|employer/i);
-  const salaryText = matchAfterLabel(bodyText, /salary/i);
-  const closingDateText = matchAfterLabel(bodyText, /closing date|application deadline|deadline/i);
-  const employmentType = matchAfterLabel(bodyText, /job type|employment type|position type/i);
-
-  return {
-    title: title.trim(),
-    employer: employerMatch || source.name,
-    city: null,
-    salaryText: salaryText || null,
-    closingDateText: closingDateText || null,
-    postedDateText: null,
-    employmentType: employmentType || null,
-    summary: cleanSummary($('main').text() || $('body').text()),
-    applyUrl: url,
-    sourceId: source.id,
-    sourceName: source.name,
-    sourceWebsite: source.website,
-  };
-}
-
-function matchAfterLabel(text, labelRegex) {
-  const re = new RegExp(labelRegex.source + '\\s*[:\\-]?\\s*([^.]{1,80})', labelRegex.flags.includes('i') ? 'i' : '');
-  const m = text.match(re);
-  return m ? m[1].trim() : null;
-}
-
-function firstNonEmpty(...vals) {
-  return vals.find((v) => v && v.trim()) || null;
-}
-
-function absoluteUrl(href, base) {
-  try {
-    return new URL(href, base).toString();
-  } catch {
-    return href;
+function buildSalaryText(rec) {
+  if (rec.SalaryInfoSelect === 'Pay Range' && (rec.PayRangeFrom || rec.PayRangeTo)) {
+    return `${rec.PayRangeFrom || '?'} - ${rec.PayRangeTo || '?'} ${periodFromDropdown(rec.PayRangeDropdown)}`.trim();
   }
+  if (rec.SalaryInfoSelect === 'Single Rate' && rec.SingleRate) {
+    return `${rec.SingleRate} ${periodFromDropdown(rec.SingleRateDropdown)}`.trim();
+  }
+  if (rec.salaryInfo && String(rec.salaryInfo).trim()) return String(rec.salaryInfo).trim();
+  if (rec.beginningSalary != null && rec.endingSalary != null) {
+    return `$${rec.beginningSalary} - $${rec.endingSalary}`;
+  }
+  return null;
+}
+
+function periodFromDropdown(dropdown) {
+  if (!dropdown) return '';
+  if (/hour/i.test(dropdown)) return 'per hour';
+  if (/month/i.test(dropdown)) return 'per month';
+  if (/year|annual/i.test(dropdown)) return 'per year';
+  return dropdown;
+}
+
+/** EDJOIN dates arrive as .NET's `/Date(ms)/` wire format; returns an ISO string. */
+function parseDotNetDate(value) {
+  if (!value) return null;
+  const m = /\/Date\((-?\d+)\)\//.exec(value);
+  if (!m) return null;
+  const ms = parseInt(m[1], 10);
+  if (!Number.isFinite(ms)) return null;
+  const d = new Date(ms);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
 module.exports = { fetchListings };

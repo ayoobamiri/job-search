@@ -56,7 +56,7 @@ async function main() {
     }
     console.log(`[scrape] fetching ${source.name} (${source.id})...`);
     try {
-      const jobs = await adapter.fetchListings(source, keywords);
+      const jobs = await adapter.fetchListings(source, keywords, counties);
       console.log(`[scrape]   -> ${jobs.length} raw listing(s)`);
       rawJobs.push(...jobs);
       runSummary.push({ sourceId: source.id, sourceName: source.name, status: 'ok', jobsFound: jobs.length });
@@ -89,7 +89,7 @@ async function main() {
     if (!raw.title || !raw.applyUrl) { s.droppedMissingFields++; continue; }
     if (!matchesItKeyword(raw.title, keywords)) { s.droppedKeyword++; continue; }
 
-    const county = resolveCounty(raw.city, cityCountyMap);
+    const county = raw.county || resolveCounty(raw.city, cityCountyMap);
     if (!isCountyEnabled(county, enabledCounties)) { s.droppedCounty++; continue; }
 
     const salary = parseSalary(raw.salaryText);
