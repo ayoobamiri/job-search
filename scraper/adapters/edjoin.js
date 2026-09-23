@@ -130,14 +130,12 @@ async function fetchListings(source, keywords, counties) {
 
   // Ground truth for Washington Unified: San Juan Unified School District
   // is already confirmed resolved (66 real Sacramento-county postings,
-  // none IT-titled -- a real absence, not a bug). "Washington Unified
-  // School District" as an exact districtName matched zero of the 42
-  // records the plain "Washington Unified" text search found, meaning
-  // EDJOIN's real districtName string for it isn't exactly that -- log
-  // every distinct districtName actually present in that result set so the
-  // real name (and which of them, if more than one, is IT-relevant) is known.
+  // none IT-titled -- a real absence, not a bug). The real West
+  // Sacramento district's own districtName turned out to be "Washington
+  // Unified School District - W. Sacramento" (Yolo county, 28 postings) --
+  // log its full title list to see whether any is IT-titled.
   {
-    const url = buildUrl('Washington Unified', 1);
+    const url = buildUrl('Washington Unified School District - W. Sacramento', 1);
     const body = await fetchText(url, {
       headers: {
         Accept: 'application/json, text/javascript, */*; q=0.01',
@@ -146,23 +144,18 @@ async function fetchListings(source, keywords, counties) {
       },
     });
     if (!body) {
-      console.log('[edjoin][debug] ground-truth query for "Washington Unified" failed to fetch');
+      console.log('[edjoin][debug] ground-truth query for Washington Unified (W. Sacramento) failed to fetch');
     } else {
       try {
         const parsed = JSON.parse(body);
         const data = Array.isArray(parsed.data) ? parsed.data : [];
-        const byDistrict = new Map();
-        for (const rec of data) {
-          const key = rec.districtName || '(none)';
-          if (!byDistrict.has(key)) byDistrict.set(key, { county: rec.countyName, titles: [] });
-          byDistrict.get(key).titles.push(rec.positionTitle);
-        }
+        const actual = data.filter((r) => r.districtName === 'Washington Unified School District - W. Sacramento');
         console.log(
-          `[edjoin][debug] "Washington Unified" text search: totalRecords=${parsed.totalRecords}, ` +
-            `distinct districtName values: ${JSON.stringify([...byDistrict.entries()].map(([name, v]) => ({ district: name, county: v.county, count: v.titles.length })))}`
+          `[edjoin][debug] Washington Unified (W. Sacramento): totalRecords=${parsed.totalRecords}, ` +
+            `${actual.length} record(s): ${JSON.stringify(actual.map((r) => r.positionTitle))}`
         );
       } catch (err) {
-        console.log(`[edjoin][debug] ground-truth query for "Washington Unified" returned non-JSON: ${err.message}`);
+        console.log(`[edjoin][debug] ground-truth query for Washington Unified (W. Sacramento) returned non-JSON: ${err.message}`);
       }
     }
   }
