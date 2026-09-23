@@ -34,6 +34,16 @@ const ROWS_PER_PAGE = 200;
 const MAX_PAGES_PER_KEYWORD = 3;
 const REQUEST_DELAY_MS = 250;
 
+// Diagnostic only (2026-09-23): a user reported specific Sacramento-area
+// districts (San Juan Unified, Washington Unified) not showing up, despite
+// this adapter now fetching EDJOIN's real API. Logs whether each district's
+// postings are (a) never returned by any keyword query at all -- meaning
+// per-keyword pagination is missing them, or the district simply has no
+// current IT-related posting -- or (b) returned but dropped by the county
+// filter, in which case the logged countyName reveals a naming mismatch.
+// Safe to remove once the real cause is confirmed from a run's logs.
+const WATCH_DISTRICTS = ['san juan', 'washington'];
+
 async function fetchListings(source, keywords, counties) {
   const targetCounties = new Set(
     (counties || [])
@@ -81,6 +91,13 @@ async function fetchListings(source, keywords, counties) {
       await sleep(REQUEST_DELAY_MS);
     } while (page <= totalPages && page <= MAX_PAGES_PER_KEYWORD);
 
+    if (totalPages > MAX_PAGES_PER_KEYWORD) {
+      console.warn(
+        `[edjoin][debug] keyword "${keyword}" has ${totalPages} total pages (totalRecords=${totalRecords}) ` +
+          `but only the first ${MAX_PAGES_PER_KEYWORD} were fetched -- older/lower-ranked matches for this keyword were not seen.`
+      );
+    }
+
     keywordStats.push({ keyword, totalRecords });
   }
 
@@ -98,6 +115,18 @@ async function fetchListings(source, keywords, counties) {
   }
 
   console.log(`[edjoin] ${source.id}: ${byPostingId.size} unique posting(s) across ${keywords.length} keyword queries`);
+
+  const watched = [...byPostingId.values()].filter((rec) =>
+    WATCH_DISTRICTS.some((name) => String(rec.districtName || '').toLowerCase().includes(name))
+  );
+  if (watched.length > 0) {
+    console.log(
+      `[edjoin][debug] found ${watched.length} posting(s) from watched districts: ` +
+        JSON.stringify(watched.map((r) => ({ district: r.districtName, county: r.countyName, title: r.positionTitle, postingID: r.postingID })))
+    );
+  } else {
+    console.log(`[edjoin][debug] no postings found from watched districts (${WATCH_DISTRICTS.join(', ')}) across any keyword query`);
+  }
 
   const jobs = [];
   for (const rec of byPostingId.values()) {
