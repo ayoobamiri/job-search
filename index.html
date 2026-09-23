@@ -13,13 +13,13 @@
 <body>
 
 <header class="app-header">
-  <span class="brand">
+  <a class="brand" href="#/">
     <span class="brand-mark">IT</span>
     <span>
       IT Job Search
       <small>Sacramento region</small>
     </span>
-  </span>
+  </a>
 </header>
 
 <main class="app-main">
@@ -31,7 +31,15 @@
     <span id="last-updated">Never refreshed</span>
   </div>
 
-  <div id="job-sections"></div>
+  <div id="view-hub">
+    <div id="source-grid" class="source-grid"></div>
+  </div>
+
+  <div id="view-source" class="hidden">
+    <a href="#/" class="back-link">&larr; All sources</a>
+    <h2 id="source-detail-heading" class="source-detail-heading"></h2>
+    <div id="source-jobs" class="job-grid"></div>
+  </div>
 
 </main>
 

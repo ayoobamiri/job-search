@@ -121,17 +121,50 @@ button { font-family: inherit; }
   color: var(--text-mute); font-size: 0.85rem;
 }
 
-.source-section { margin-bottom: 32px; }
-.source-section:last-child { margin-bottom: 0; }
+.hidden { display: none !important; }
 
-.source-heading {
-  font-size: 1rem; font-weight: 700; color: var(--text);
-  margin: 0 0 14px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border);
+.back-link {
+  display: inline-block;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
 }
-.source-count {
-  font-weight: 500; color: var(--text-mute); font-size: 0.85rem;
+.back-link:hover { color: var(--accent); }
+
+.source-detail-heading {
+  font-size: 1.3rem; font-weight: 700; color: var(--text);
+  margin: 0 0 18px;
+}
+
+.source-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.source-card {
+  display: flex; flex-direction: column; gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s var(--ease), transform 0.15s var(--ease);
+}
+.source-card:hover { border-color: var(--accent-border); transform: translateY(-2px); }
+
+.source-card-name { font-size: 1.08rem; font-weight: 700; color: var(--text); margin: 0; }
+.source-card-website { font-size: 0.8rem; color: var(--text-mute); margin: 4px 0 0; }
+
+.source-card-count { display: flex; align-items: baseline; gap: 8px; }
+.count-num { font-size: 2rem; font-weight: 800; color: var(--accent); font-family: var(--font-mono); }
+.count-label { font-size: 0.82rem; color: var(--text-dim); }
+
+.source-card-cta {
+  margin-top: auto;
+  font-size: 0.82rem; font-weight: 700; color: var(--accent);
 }
 
 .job-grid {
@@ -227,5 +260,6 @@ footer.app-footer {
   .app-header { padding: 0 12px; gap: 8px; }
   .brand small { display: none; }
   .job-grid { grid-template-columns: 1fr; }
+  .source-grid { grid-template-columns: 1fr; }
   .job-meta-grid { grid-template-columns: 1fr 1fr; }
 }
