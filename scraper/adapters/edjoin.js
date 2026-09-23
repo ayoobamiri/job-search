@@ -128,6 +128,38 @@ async function fetchListings(source, keywords, counties) {
     console.log(`[edjoin][debug] no postings found from watched districts (${WATCH_DISTRICTS.join(', ')}) across any keyword query`);
   }
 
+  // Ground truth for the watched districts: query EDJOIN by district name
+  // itself (not an IT keyword) to see every current posting from that
+  // district, independent of our IT keyword list or per-keyword pagination
+  // limits -- this tells us whether the district simply has no open IT
+  // posting right now, or has one whose title our keyword list isn't
+  // catching.
+  for (const districtQuery of ['San Juan Unified', 'Washington Unified']) {
+    const url = buildUrl(districtQuery, 1);
+    const body = await fetchText(url, {
+      headers: {
+        Accept: 'application/json, text/javascript, */*; q=0.01',
+        'X-Requested-With': 'XMLHttpRequest',
+        Referer: source.searchUrl,
+      },
+    });
+    if (!body) {
+      console.log(`[edjoin][debug] ground-truth query for "${districtQuery}" failed to fetch`);
+      continue;
+    }
+    try {
+      const parsed = JSON.parse(body);
+      const data = Array.isArray(parsed.data) ? parsed.data : [];
+      console.log(
+        `[edjoin][debug] ground-truth query "${districtQuery}": totalRecords=${parsed.totalRecords}, ` +
+          `titles=${JSON.stringify(data.map((r) => r.positionTitle))}`
+      );
+    } catch (err) {
+      console.log(`[edjoin][debug] ground-truth query for "${districtQuery}" returned non-JSON: ${err.message}`);
+    }
+    await sleep(REQUEST_DELAY_MS);
+  }
+
   const jobs = [];
   for (const rec of byPostingId.values()) {
     const countyKey = rec.countyName ? String(rec.countyName).trim().toLowerCase() : null;
