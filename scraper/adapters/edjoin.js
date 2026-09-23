@@ -128,18 +128,16 @@ async function fetchListings(source, keywords, counties) {
     console.log(`[edjoin][debug] no postings found from watched districts (${WATCH_DISTRICTS.join(', ')}) across any keyword query`);
   }
 
-  // Ground truth for the watched districts: query EDJOIN by district name
-  // itself (not an IT keyword) to see every current posting from that
-  // district, independent of our IT keyword list or per-keyword pagination
-  // limits -- this tells us whether the district simply has no open IT
-  // posting right now, or has one whose title our keyword list isn't
-  // catching. The plain "San Juan Unified" text query turned out to also
-  // match an unrelated Orange County district whose school names happen to
-  // contain "San Juan" (San Juan Capistrano/San Juan Hills), so this uses
-  // the full district name and only logs records whose own districtName
-  // field actually matches, with each record's real countyName attached.
-  for (const districtQuery of ['San Juan Unified School District', 'Washington Unified School District']) {
-    const url = buildUrl(districtQuery, 1);
+  // Ground truth for Washington Unified: San Juan Unified School District
+  // is already confirmed resolved (66 real Sacramento-county postings,
+  // none IT-titled -- a real absence, not a bug). "Washington Unified
+  // School District" as an exact districtName matched zero of the 42
+  // records the plain "Washington Unified" text search found, meaning
+  // EDJOIN's real districtName string for it isn't exactly that -- log
+  // every distinct districtName actually present in that result set so the
+  // real name (and which of them, if more than one, is IT-relevant) is known.
+  {
+    const url = buildUrl('Washington Unified', 1);
     const body = await fetchText(url, {
       headers: {
         Accept: 'application/json, text/javascript, */*; q=0.01',
@@ -148,22 +146,25 @@ async function fetchListings(source, keywords, counties) {
       },
     });
     if (!body) {
-      console.log(`[edjoin][debug] ground-truth query for "${districtQuery}" failed to fetch`);
-      continue;
+      console.log('[edjoin][debug] ground-truth query for "Washington Unified" failed to fetch');
+    } else {
+      try {
+        const parsed = JSON.parse(body);
+        const data = Array.isArray(parsed.data) ? parsed.data : [];
+        const byDistrict = new Map();
+        for (const rec of data) {
+          const key = rec.districtName || '(none)';
+          if (!byDistrict.has(key)) byDistrict.set(key, { county: rec.countyName, titles: [] });
+          byDistrict.get(key).titles.push(rec.positionTitle);
+        }
+        console.log(
+          `[edjoin][debug] "Washington Unified" text search: totalRecords=${parsed.totalRecords}, ` +
+            `distinct districtName values: ${JSON.stringify([...byDistrict.entries()].map(([name, v]) => ({ district: name, county: v.county, count: v.titles.length })))}`
+        );
+      } catch (err) {
+        console.log(`[edjoin][debug] ground-truth query for "Washington Unified" returned non-JSON: ${err.message}`);
+      }
     }
-    try {
-      const parsed = JSON.parse(body);
-      const data = Array.isArray(parsed.data) ? parsed.data : [];
-      const actual = data.filter((r) => String(r.districtName || '').toLowerCase() === districtQuery.toLowerCase());
-      console.log(
-        `[edjoin][debug] ground-truth query "${districtQuery}": totalRecords=${parsed.totalRecords}, ` +
-          `${actual.length} record(s) with exactly matching districtName: ` +
-          JSON.stringify(actual.map((r) => ({ title: r.positionTitle, county: r.countyName })))
-      );
-    } catch (err) {
-      console.log(`[edjoin][debug] ground-truth query for "${districtQuery}" returned non-JSON: ${err.message}`);
-    }
-    await sleep(REQUEST_DELAY_MS);
   }
 
   const jobs = [];
