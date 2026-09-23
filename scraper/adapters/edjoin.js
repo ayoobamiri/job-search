@@ -34,16 +34,6 @@ const ROWS_PER_PAGE = 200;
 const MAX_PAGES_PER_KEYWORD = 3;
 const REQUEST_DELAY_MS = 250;
 
-// Diagnostic only (2026-09-23): a user reported specific Sacramento-area
-// districts (San Juan Unified, Washington Unified) not showing up, despite
-// this adapter now fetching EDJOIN's real API. Logs whether each district's
-// postings are (a) never returned by any keyword query at all -- meaning
-// per-keyword pagination is missing them, or the district simply has no
-// current IT-related posting -- or (b) returned but dropped by the county
-// filter, in which case the logged countyName reveals a naming mismatch.
-// Safe to remove once the real cause is confirmed from a run's logs.
-const WATCH_DISTRICTS = ['san juan', 'washington'];
-
 async function fetchListings(source, keywords, counties) {
   const targetCounties = new Set(
     (counties || [])
@@ -115,50 +105,6 @@ async function fetchListings(source, keywords, counties) {
   }
 
   console.log(`[edjoin] ${source.id}: ${byPostingId.size} unique posting(s) across ${keywords.length} keyword queries`);
-
-  const watched = [...byPostingId.values()].filter((rec) =>
-    WATCH_DISTRICTS.some((name) => String(rec.districtName || '').toLowerCase().includes(name))
-  );
-  if (watched.length > 0) {
-    console.log(
-      `[edjoin][debug] found ${watched.length} posting(s) from watched districts: ` +
-        JSON.stringify(watched.map((r) => ({ district: r.districtName, county: r.countyName, title: r.positionTitle, postingID: r.postingID })))
-    );
-  } else {
-    console.log(`[edjoin][debug] no postings found from watched districts (${WATCH_DISTRICTS.join(', ')}) across any keyword query`);
-  }
-
-  // Ground truth for Washington Unified: San Juan Unified School District
-  // is already confirmed resolved (66 real Sacramento-county postings,
-  // none IT-titled -- a real absence, not a bug). The real West
-  // Sacramento district's own districtName turned out to be "Washington
-  // Unified School District - W. Sacramento" (Yolo county, 28 postings) --
-  // log its full title list to see whether any is IT-titled.
-  {
-    const url = buildUrl('Washington Unified School District - W. Sacramento', 1);
-    const body = await fetchText(url, {
-      headers: {
-        Accept: 'application/json, text/javascript, */*; q=0.01',
-        'X-Requested-With': 'XMLHttpRequest',
-        Referer: source.searchUrl,
-      },
-    });
-    if (!body) {
-      console.log('[edjoin][debug] ground-truth query for Washington Unified (W. Sacramento) failed to fetch');
-    } else {
-      try {
-        const parsed = JSON.parse(body);
-        const data = Array.isArray(parsed.data) ? parsed.data : [];
-        const actual = data.filter((r) => r.districtName === 'Washington Unified School District - W. Sacramento');
-        console.log(
-          `[edjoin][debug] Washington Unified (W. Sacramento): totalRecords=${parsed.totalRecords}, ` +
-            `${actual.length} record(s): ${JSON.stringify(actual.map((r) => r.positionTitle))}`
-        );
-      } catch (err) {
-        console.log(`[edjoin][debug] ground-truth query for Washington Unified (W. Sacramento) returned non-JSON: ${err.message}`);
-      }
-    }
-  }
 
   const jobs = [];
   for (const rec of byPostingId.values()) {

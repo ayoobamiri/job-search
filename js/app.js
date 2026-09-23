@@ -1,6 +1,9 @@
 (function () {
   'use strict';
 
+  var EDJOIN_SOURCE_ID = 'edjoin';
+  var VIEW_IDS = ['view-hub', 'view-source', 'view-districts', 'view-district-detail'];
+
   var jobsDataCache = null;
   var sourcesCache = null;
 
@@ -8,6 +11,12 @@
     return fetch(path, { cache: 'no-store' }).then(function (res) {
       if (!res.ok) throw new Error('Failed to load ' + path);
       return res.json();
+    });
+  }
+
+  function showView(id) {
+    VIEW_IDS.forEach(function (v) {
+      document.getElementById(v).classList.toggle('hidden', v !== id);
     });
   }
 
@@ -21,40 +30,60 @@
     return groups;
   }
 
-  function sourceCardHtml(source, count) {
+  function groupByDistrict(jobs) {
+    var groups = new Map();
+    jobs
+      .filter(function (job) { return job.sourceId === EDJOIN_SOURCE_ID; })
+      .forEach(function (job) {
+        var key = job.employer || 'Unknown district';
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(job);
+      });
+    return groups;
+  }
+
+  function countCardHtml(href, name, subtitle, count, ctaText) {
     var countLabel = count === 1 ? 'job open' : 'jobs open';
     return (
-      '<a class="source-card" href="#/source/' + encodeURIComponent(source.id) + '">' +
+      '<a class="source-card" href="' + href + '">' +
         '<div class="source-card-top">' +
-          '<h2 class="source-card-name">' + Render.escapeHtml(source.name) + '</h2>' +
-          '<p class="source-card-website">' + Render.escapeHtml(source.website) + '</p>' +
+          '<h2 class="source-card-name">' + Render.escapeHtml(name) + '</h2>' +
+          (subtitle ? '<p class="source-card-website">' + Render.escapeHtml(subtitle) + '</p>' : '') +
         '</div>' +
         '<div class="source-card-count">' +
           '<span class="count-num">' + count + '</span>' +
           '<span class="count-label">' + countLabel + '</span>' +
         '</div>' +
-        '<span class="source-card-cta">View jobs &rarr;</span>' +
+        '<span class="source-card-cta">' + ctaText + '</span>' +
       '</a>'
     );
   }
 
   function renderHub(jobsData, sources) {
-    document.getElementById('view-source').classList.add('hidden');
-    document.getElementById('view-hub').classList.remove('hidden');
+    showView('view-hub');
 
-    var grouped = groupBySourceId(jobsData.jobs || []);
-    var grid = document.getElementById('source-grid');
-    grid.innerHTML = sources
-      .map(function (source) {
-        var count = (grouped.get(source.id) || []).length;
-        return sourceCardHtml(source, count);
-      })
-      .join('');
+    var jobs = jobsData.jobs || [];
+    var grouped = groupBySourceId(jobs);
+    var cards = sources.map(function (source) {
+      var count = (grouped.get(source.id) || []).length;
+      return countCardHtml('#/source/' + encodeURIComponent(source.id), source.name, source.website, count, 'View jobs &rarr;');
+    });
+
+    var edjoinJobCount = (grouped.get(EDJOIN_SOURCE_ID) || []).length;
+    var districtCount = groupByDistrict(jobs).size;
+    cards.push(countCardHtml(
+      '#/districts',
+      'School Districts',
+      'Grouped from EDJOIN.org',
+      edjoinJobCount,
+      districtCount + (districtCount === 1 ? ' district &rarr;' : ' districts &rarr;')
+    ));
+
+    document.getElementById('source-grid').innerHTML = cards.join('');
   }
 
   function renderSourceDetail(jobsData, sources, sourceId) {
-    document.getElementById('view-hub').classList.add('hidden');
-    document.getElementById('view-source').classList.remove('hidden');
+    showView('view-source');
 
     var source = sources.find(function (s) { return s.id === sourceId; });
     var heading = document.getElementById('source-detail-heading');
@@ -79,11 +108,58 @@
     container.innerHTML = jobs.map(Render.jobCardHtml).join('');
   }
 
+  function renderDistrictList(jobsData) {
+    showView('view-districts');
+
+    var grouped = groupByDistrict(jobsData.jobs || []);
+    var names = [...grouped.keys()].sort(function (a, b) { return a.localeCompare(b); });
+    var grid = document.getElementById('district-grid');
+
+    if (names.length === 0) {
+      grid.innerHTML = '<div class="empty-state"><h3>No open IT jobs from school districts right now</h3><p>Check back after the next scheduled refresh.</p></div>';
+      return;
+    }
+
+    grid.innerHTML = names
+      .map(function (name) {
+        var count = grouped.get(name).length;
+        return countCardHtml('#/districts/' + encodeURIComponent(name), name, null, count, 'View jobs &rarr;');
+      })
+      .join('');
+  }
+
+  function renderDistrictDetail(jobsData, districtName) {
+    showView('view-district-detail');
+
+    var jobs = Filters.filterAndSortJobs((jobsData.jobs || []).filter(function (job) {
+      return job.sourceId === EDJOIN_SOURCE_ID && job.employer === districtName;
+    }));
+
+    var heading = document.getElementById('district-detail-heading');
+    var container = document.getElementById('district-jobs');
+
+    if (jobs.length === 0) {
+      heading.textContent = districtName;
+      container.innerHTML = '<div class="empty-state"><h3>No open IT jobs right now</h3><p><a href="#/districts">Back to all districts</a></p></div>';
+      return;
+    }
+
+    heading.textContent = districtName + ' — ' + jobs.length + (jobs.length === 1 ? ' job open' : ' jobs open');
+    container.innerHTML = jobs.map(Render.jobCardHtml).join('');
+  }
+
   function route() {
     if (!jobsDataCache || !sourcesCache) return;
-    var match = (window.location.hash || '').match(/^#\/source\/(.+)$/);
-    if (match) {
-      renderSourceDetail(jobsDataCache, sourcesCache, decodeURIComponent(match[1]));
+    var hash = window.location.hash || '';
+    var sourceMatch = hash.match(/^#\/source\/(.+)$/);
+    var districtMatch = hash.match(/^#\/districts\/(.+)$/);
+
+    if (sourceMatch) {
+      renderSourceDetail(jobsDataCache, sourcesCache, decodeURIComponent(sourceMatch[1]));
+    } else if (districtMatch) {
+      renderDistrictDetail(jobsDataCache, decodeURIComponent(districtMatch[1]));
+    } else if (hash === '#/districts') {
+      renderDistrictList(jobsDataCache);
     } else {
       renderHub(jobsDataCache, sourcesCache);
     }
