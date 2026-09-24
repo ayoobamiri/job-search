@@ -68,6 +68,24 @@
     );
   }
 
+  function jobRowHtml(job) {
+    var due = job.noClosingDate ? 'No closing date provided' : (formatDate(job.closingDate) || 'Not provided');
+    var distanceMiles = global.Distance.effectiveDistance(job, null);
+    var distanceText = distanceMiles == null ? 'Not provided' : distanceMiles + ' mi';
+
+    return (
+      '<tr>' +
+        '<td>' + escapeHtml(job.sourceName) + '</td>' +
+        '<td>' + escapeHtml(job.title) + '</td>' +
+        '<td>' + escapeHtml(formatSalary(job)) + '</td>' +
+        '<td>' + escapeHtml(due) + '</td>' +
+        '<td>' + escapeHtml(job.employmentType || 'Not provided') + '</td>' +
+        '<td>' + escapeHtml(distanceText) + '</td>' +
+        '<td><a class="apply-link" href="' + escapeHtml(job.applyUrl) + '" target="_blank" rel="noopener noreferrer">View Job / Apply</a></td>' +
+      '</tr>'
+    );
+  }
+
   function statusBannerHtml(jobsData) {
     if (!jobsData.lastUpdated) {
       return '<div class="status-banner warn"><strong>No data yet.</strong>&nbsp;This dashboard has not run a scrape yet. Once the scheduled GitHub Action runs (or you run <code>npm run scrape</code> locally), current job listings will appear here.</div>';
@@ -85,6 +103,7 @@
     formatSalary: formatSalary,
     formatDate: formatDate,
     jobCardHtml: jobCardHtml,
+    jobRowHtml: jobRowHtml,
     statusBannerHtml: statusBannerHtml,
   };
 })(window);

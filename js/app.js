@@ -80,6 +80,9 @@
     ));
 
     document.getElementById('source-grid').innerHTML = cards.join('');
+
+    var sortedJobs = Filters.filterAndSortJobs(jobs);
+    document.getElementById('jobs-table-body').innerHTML = sortedJobs.map(Render.jobRowHtml).join('');
   }
 
   function renderSourceDetail(jobsData, sources, sourceId) {

@@ -239,6 +239,45 @@ button { font-family: inherit; }
 }
 .apply-link:hover { background: var(--accent); color: #05202a; }
 
+.all-jobs-heading {
+  font-size: 1.15rem; font-weight: 700; color: var(--text);
+  margin: 40px 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.jobs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.jobs-table th, .jobs-table td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.jobs-table th {
+  background: var(--surface);
+  color: var(--text-mute);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.jobs-table td { color: var(--text-dim); }
+.jobs-table td:nth-child(2) { color: var(--text); font-weight: 600; white-space: normal; }
+.jobs-table tbody tr:last-child td { border-bottom: none; }
+.jobs-table tbody tr:hover { background: var(--surface-hover); }
+.jobs-table .apply-link { display: inline-block; }
+
 .empty-state {
   text-align: center;
   padding: 64px 20px;
