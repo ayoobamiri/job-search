@@ -1,0 +1,13 @@
+name: One-off create dismissed-jobs blob
+on: workflow_dispatch
+jobs:
+  create-blob:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create jsonblob and print its URL
+        run: |
+          curl -s -X POST -H "Content-Type: application/json" -d '[]' -D /tmp/headers.txt https://jsonblob.com/api/jsonBlob -o /dev/null
+          echo "----HEADERS----"
+          cat /tmp/headers.txt
+          echo "----LOCATION----"
+          grep -i '^location:' /tmp/headers.txt
