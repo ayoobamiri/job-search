@@ -46,6 +46,7 @@
 
     return (
       '<article class="job-card" data-job-id="' + escapeHtml(job.id) + '">' +
+        '<button type="button" class="job-delete-btn card-delete-btn" data-delete-id="' + escapeHtml(job.id) + '" title="Remove from this list" aria-label="Remove from this list">&times;</button>' +
         '<div class="job-card-top">' +
           '<div>' +
             '<h3 class="job-title">' + escapeHtml(job.title) + '</h3>' +
@@ -72,17 +73,18 @@
     var due = job.noClosingDate ? 'No closing date provided' : (formatDate(job.closingDate) || 'Not provided');
     var distanceMiles = global.Distance.effectiveDistance(job, null);
     var distanceText = distanceMiles == null ? 'Not provided' : distanceMiles + ' mi';
+    var titleClass = global.Filters.isNewJob(job) ? ' class="job-title-new"' : '';
 
     return (
       '<tr>' +
         '<td>' + escapeHtml(job.sourceName) + '</td>' +
-        '<td>' + escapeHtml(job.title) + '</td>' +
+        '<td' + titleClass + '>' + escapeHtml(job.title) + '</td>' +
         '<td>' + escapeHtml(formatSalary(job)) + '</td>' +
         '<td>' + escapeHtml(due) + '</td>' +
         '<td>' + escapeHtml(job.employmentType || 'Not provided') + '</td>' +
         '<td>' + escapeHtml(distanceText) + '</td>' +
         '<td><a class="apply-link" href="' + escapeHtml(job.applyUrl) + '" target="_blank" rel="noopener noreferrer">View Job / Apply</a></td>' +
-        '<td><button type="button" class="row-delete-btn" data-delete-id="' + escapeHtml(job.id) + '" title="Remove from this list" aria-label="Remove from this list">&times;</button></td>' +
+        '<td><button type="button" class="job-delete-btn" data-delete-id="' + escapeHtml(job.id) + '" title="Remove from this list" aria-label="Remove from this list">&times;</button></td>' +
       '</tr>'
     );
   }

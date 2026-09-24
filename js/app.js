@@ -36,6 +36,14 @@
     });
   }
 
+  /** Jobs the viewer hasn't dismissed. Applied everywhere (cards, counts,
+   * the table) so a deleted job never reappears anywhere in the app,
+   * not just the row it was deleted from. */
+  function visibleJobs(jobsData) {
+    var dismissed = loadDismissedIds();
+    return (jobsData.jobs || []).filter(function (job) { return !dismissed.has(job.id); });
+  }
+
   function loadJson(path) {
     return fetch(path, { cache: 'no-store' }).then(function (res) {
       if (!res.ok) throw new Error('Failed to load ' + path);
@@ -91,7 +99,7 @@
   function renderHub(jobsData, sources) {
     showView('view-hub');
 
-    var jobs = jobsData.jobs || [];
+    var jobs = visibleJobs(jobsData);
     var grouped = groupBySourceId(jobs);
     var cards = sources.map(function (source) {
       var count = (grouped.get(source.id) || []).length;
@@ -110,8 +118,7 @@
 
     document.getElementById('source-grid').innerHTML = cards.join('');
 
-    var dismissed = loadDismissedIds();
-    var tableJobs = sortByDueDate(jobs.filter(function (job) { return !dismissed.has(job.id); }));
+    var tableJobs = sortByDueDate(jobs);
     document.getElementById('jobs-table-body').innerHTML = tableJobs.map(Render.jobRowHtml).join('');
   }
 
@@ -128,7 +135,7 @@
       return;
     }
 
-    var jobs = Filters.filterAndSortJobs((jobsData.jobs || []).filter(function (job) {
+    var jobs = Filters.filterAndSortJobs(visibleJobs(jobsData).filter(function (job) {
       return job.sourceId === sourceId;
     }));
 
@@ -144,7 +151,7 @@
   function renderDistrictList(jobsData) {
     showView('view-districts');
 
-    var grouped = groupByDistrict(jobsData.jobs || []);
+    var grouped = groupByDistrict(visibleJobs(jobsData));
     var names = [...grouped.keys()].sort(function (a, b) { return a.localeCompare(b); });
     var grid = document.getElementById('district-grid');
 
@@ -164,7 +171,7 @@
   function renderDistrictDetail(jobsData, districtName) {
     showView('view-district-detail');
 
-    var jobs = Filters.filterAndSortJobs((jobsData.jobs || []).filter(function (job) {
+    var jobs = Filters.filterAndSortJobs(visibleJobs(jobsData).filter(function (job) {
       return job.sourceId === EDJOIN_SOURCE_ID && job.employer === districtName;
     }));
 
@@ -206,21 +213,21 @@
       ? 'Last refreshed ' + new Date(jobsData.lastUpdated).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
       : 'Never refreshed';
 
-    var jobs = jobsData.jobs || [];
+    var jobs = visibleJobs(jobsData);
     document.getElementById('results-count').textContent =
       jobs.length + (jobs.length === 1 ? ' job found' : ' jobs found');
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('jobs-table-body').addEventListener('click', function (e) {
-      var btn = e.target.closest('.row-delete-btn');
-      if (!btn) return;
+    document.body.addEventListener('click', function (e) {
+      var btn = e.target.closest('.job-delete-btn');
+      if (!btn || !jobsDataCache) return;
       var id = btn.getAttribute('data-delete-id');
       var dismissed = loadDismissedIds();
       dismissed.add(id);
       saveDismissedIds(dismissed);
-      var row = btn.closest('tr');
-      if (row) row.remove();
+      renderMeta(jobsDataCache);
+      route();
     });
 
     Promise.all([loadJson('data/jobs.json'), loadJson('data/sources.json')])

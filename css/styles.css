@@ -186,6 +186,7 @@ button { font-family: inherit; }
 
 .job-card-top {
   display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+  padding-right: 30px;
 }
 .job-title { font-size: 1.02rem; font-weight: 700; color: var(--text); margin: 0; }
 .job-employer { font-size: 0.86rem; color: var(--text-dim); margin: 2px 0 0; }
@@ -274,11 +275,12 @@ button { font-family: inherit; }
 }
 .jobs-table td { color: var(--text-dim); }
 .jobs-table td:nth-child(2) { color: var(--text); font-weight: 600; white-space: normal; }
+.jobs-table td:nth-child(2).job-title-new { color: var(--accent-2); }
 .jobs-table tbody tr:last-child td { border-bottom: none; }
 .jobs-table tbody tr:hover { background: var(--surface-hover); }
 .jobs-table .apply-link { display: inline-block; }
 
-.row-delete-btn {
+.job-delete-btn {
   width: 28px; height: 28px;
   border-radius: 50%;
   border: 1px solid var(--border);
@@ -287,9 +289,16 @@ button { font-family: inherit; }
   font-size: 1rem;
   line-height: 1;
   cursor: pointer;
+  flex-shrink: 0;
   transition: border-color 0.15s var(--ease), color 0.15s var(--ease), background 0.15s var(--ease);
 }
-.row-delete-btn:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+.job-delete-btn:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+
+.card-delete-btn {
+  position: absolute;
+  top: 14px; right: 14px;
+  background: var(--surface);
+}
 
 .empty-state {
   text-align: center;
