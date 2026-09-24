@@ -23,6 +23,29 @@
   var sourcesCache = null;
   var dismissedIdsCache = new Set();
 
+  // Whether the shared dismissed-ids store was reachable the last time we
+  // tried it. Surfaced as a visible banner (see setSyncOk/syncWarningHtml)
+  // instead of only a console.warn, so a browser/network that silently
+  // can't reach keyvalue.immanuel.co (ad blocker, privacy extension,
+  // network filtering, the service being down, etc.) is obvious to the
+  // user instead of looking like deleted jobs "coming back" for no reason.
+  var dismissedSyncOk = true;
+
+  function setSyncOk(ok) {
+    if (ok === dismissedSyncOk) return;
+    dismissedSyncOk = ok;
+    if (jobsDataCache) renderMeta(jobsDataCache);
+  }
+
+  function syncWarningHtml() {
+    if (dismissedSyncOk) return '';
+    return (
+      '<div class="status-banner warn"><strong>Deleted-jobs list not synced.</strong>&nbsp;' +
+      'This device could not reach the shared list just now, so a job deleted here (or on another ' +
+      'device/browser) might not show up here until it reconnects. It will keep retrying automatically.</div>'
+    );
+  }
+
   // Serializes every read-modify-write against the shared store so two
   // deletes (rapid clicks on this device, or another device's delete
   // arriving around the same time) can never race: a blind "overwrite with
@@ -79,6 +102,7 @@
     return fetchServerDismissedIds()
       .then(function (ids) {
         dismissedIdsCache = new Set(ids);
+        setSyncOk(true);
 
         var legacy = loadLegacyDismissedIds();
         var hasNew = legacy.some(function (id) { return !dismissedIdsCache.has(id); });
@@ -90,6 +114,7 @@
       .catch(function (err) {
         console.warn('[app] could not reach the shared dismissed-jobs list, using this device\'s own list only:', err.message);
         dismissedIdsCache = new Set(loadLegacyDismissedIds());
+        setSyncOk(false);
       });
   }
 
@@ -106,7 +131,8 @@
    * someone else's write raced ours, so we merge again and retry. */
   function attemptPersist(retriesLeft) {
     return fetchServerDismissedIds()
-      .catch(function () { return []; })
+      .then(function (ids) { setSyncOk(true); return ids; })
+      .catch(function () { setSyncOk(false); return []; })
       .then(function (serverIds) {
         var before = dismissedIdsCache.size;
         serverIds.forEach(function (id) { dismissedIdsCache.add(id); });
@@ -119,7 +145,9 @@
             renderMeta(jobsDataCache);
             route();
           }
-          return fetchServerDismissedIds().catch(function () { return ids; });
+          return fetchServerDismissedIds()
+            .then(function (v) { setSyncOk(true); return v; })
+            .catch(function () { setSyncOk(false); return ids; });
         }).then(function (verifyIds) {
           var verifySet = new Set(verifyIds);
           var lost = ids.some(function (id) { return !verifySet.has(id); });
@@ -128,6 +156,9 @@
               return attemptPersist(retriesLeft - 1);
             });
           }
+          if (lost && retriesLeft === 0) setSyncOk(false);
+        }, function () {
+          setSyncOk(false);
         });
       });
   }
@@ -141,6 +172,7 @@
       .then(function () { return attemptPersist(3); })
       .catch(function (err) {
         console.warn('[app] could not save the shared dismissed-jobs list (will retry on next delete):', err.message);
+        setSyncOk(false);
       });
     return persistQueue;
   }
@@ -326,7 +358,7 @@
   }
 
   function renderMeta(jobsData) {
-    document.getElementById('status-banner-container').innerHTML = Render.statusBannerHtml(jobsData);
+    document.getElementById('status-banner-container').innerHTML = syncWarningHtml() + Render.statusBannerHtml(jobsData);
 
     var lastUpdatedEl = document.getElementById('last-updated');
     lastUpdatedEl.textContent = jobsData.lastUpdated
