@@ -23,6 +23,16 @@
   var sourcesCache = null;
   var dismissedIdsCache = new Set();
 
+  // Serializes every read-modify-write against the shared store so two
+  // deletes (rapid clicks on this device, or another device's delete
+  // arriving around the same time) can never race: a blind "overwrite with
+  // whatever this device last saw" was the actual bug -- whichever write
+  // landed last won and silently dropped the other one's deletion. Each
+  // write in this queue now re-fetches the current server state first and
+  // merges into it, so an overlapping delete elsewhere is preserved instead
+  // of clobbered.
+  var persistQueue = Promise.resolve();
+
   function loadLegacyDismissedIds() {
     try {
       var raw = localStorage.getItem(LEGACY_DISMISSED_KEY);
@@ -32,26 +42,42 @@
     }
   }
 
+  function saveLegacyDismissedIds(ids) {
+    try {
+      localStorage.setItem(LEGACY_DISMISSED_KEY, JSON.stringify(ids));
+    } catch (e) {
+      // private browsing / quota / disabled storage -- local mirror just won't persist
+    }
+  }
+
+  /** Fetches and unwraps the shared list as it currently stands on the
+   * server (the service double-JSON-encodes: the HTTP body is a JSON
+   * string containing our own JSON-encoded array). Returns [] on any
+   * failure or empty/never-set value. */
+  function fetchServerDismissedIds() {
+    return fetch(KV_GET_URL, { cache: 'no-store' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json(); // outer layer
+      })
+      .then(function (rawValue) {
+        if (!rawValue) return [];
+        try {
+          return JSON.parse(rawValue) || [];
+        } catch (e) {
+          return [];
+        }
+      });
+  }
+
   /** Loads the shared dismissed-ids list, merges in any pre-existing
    * per-device list (one-time migration), and populates dismissedIdsCache.
    * Falls back to the legacy per-device list alone if the shared store is
    * unreachable, so the app still works (just without cross-device sync)
    * if that service is ever down. */
   function loadDismissedIds() {
-    return fetch(KV_GET_URL, { cache: 'no-store' })
-      .then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json(); // outer layer: server wraps the stored string in JSON
-      })
-      .then(function (rawValue) {
-        var ids = [];
-        if (rawValue) {
-          try {
-            ids = JSON.parse(rawValue) || [];
-          } catch (e) {
-            ids = [];
-          }
-        }
+    return fetchServerDismissedIds()
+      .then(function (ids) {
         dismissedIdsCache = new Set(ids);
 
         var legacy = loadLegacyDismissedIds();
@@ -67,21 +93,56 @@
       });
   }
 
-  /** Persists the current dismissedIdsCache to the shared store (and mirrors
-   * it to localStorage as an offline-friendly local backup). Fire-and-forget
-   * from the caller's perspective -- a failed save just means the next
-   * device to load won't see this deletion yet; it never blocks the UI. */
+  function sleep(ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  }
+
+  /** One read-merge-write-verify attempt. This store has no compare-and-swap,
+   * so two genuinely simultaneous writes (this device and another, both
+   * mid-flight at once) can still both read the same stale state and one
+   * can overwrite the other -- merging before writing closes most of that
+   * window, but not all of it. Re-reading after the write catches the rest:
+   * if our own ids are missing from what's actually on the server afterward,
+   * someone else's write raced ours, so we merge again and retry. */
+  function attemptPersist(retriesLeft) {
+    return fetchServerDismissedIds()
+      .catch(function () { return []; })
+      .then(function (serverIds) {
+        var before = dismissedIdsCache.size;
+        serverIds.forEach(function (id) { dismissedIdsCache.add(id); });
+        var ids = [...dismissedIdsCache];
+        saveLegacyDismissedIds(ids);
+
+        var url = KV_SET_URL_PREFIX + encodeURIComponent(JSON.stringify(ids));
+        return fetch(url, { method: 'POST', body: '' }).then(function () {
+          if (dismissedIdsCache.size !== before && jobsDataCache) {
+            renderMeta(jobsDataCache);
+            route();
+          }
+          return fetchServerDismissedIds().catch(function () { return ids; });
+        }).then(function (verifyIds) {
+          var verifySet = new Set(verifyIds);
+          var lost = ids.some(function (id) { return !verifySet.has(id); });
+          if (lost && retriesLeft > 0) {
+            return sleep(150 + Math.random() * 250).then(function () {
+              return attemptPersist(retriesLeft - 1);
+            });
+          }
+        });
+      });
+  }
+
+  /** Queues a persist attempt so overlapping calls (fast repeated deletes on
+   * this device) run one at a time against a fresh read instead of racing
+   * on a stale snapshot, then verifies and retries a few times if a
+   * concurrent write from elsewhere still raced past that. */
   function persistDismissedIds() {
-    var ids = [...dismissedIdsCache];
-    try {
-      localStorage.setItem(LEGACY_DISMISSED_KEY, JSON.stringify(ids));
-    } catch (e) {
-      // private browsing / quota / disabled storage -- local mirror just won't persist
-    }
-    var url = KV_SET_URL_PREFIX + encodeURIComponent(JSON.stringify(ids));
-    return fetch(url, { method: 'POST', body: '' }).catch(function (err) {
-      console.warn('[app] could not save the shared dismissed-jobs list (will retry on next delete):', err.message);
-    });
+    persistQueue = persistQueue
+      .then(function () { return attemptPersist(3); })
+      .catch(function (err) {
+        console.warn('[app] could not save the shared dismissed-jobs list (will retry on next delete):', err.message);
+      });
+    return persistQueue;
   }
 
   /** Soonest due date first; jobs with no closing date sort to the end
