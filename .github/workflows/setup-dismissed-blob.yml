@@ -4,10 +4,15 @@ jobs:
   create-blob:
     runs-on: ubuntu-latest
     steps:
-      - name: Test round-trip set/get using our real app key
+      - name: Check CORS headers with a browser-like Origin
         run: |
           APPKEY="j3phzvnq"
-          echo "---- UpdateValue ----"
-          curl -s -d '' -w '\nHTTP_STATUS:%{http_code}\n' -X POST "https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/$APPKEY/probe-key/%5B%22abc123%22%5D"
-          echo "---- GetValue ----"
-          curl -s -w '\nHTTP_STATUS:%{http_code}\n' https://keyvalue.immanuel.co/api/KeyVal/GetValue/$APPKEY/probe-key
+          echo "---- GetValue with Origin header (simulating a browser cross-origin request) ----"
+          curl -s -D - -o /dev/null \
+            -H "Origin: https://ayoobamiri.github.io" \
+            "https://keyvalue.immanuel.co/api/KeyVal/GetValue/$APPKEY/probe-key"
+          echo "---- OPTIONS preflight check ----"
+          curl -s -D - -o /dev/null -X OPTIONS \
+            -H "Origin: https://ayoobamiri.github.io" \
+            -H "Access-Control-Request-Method: POST" \
+            "https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/$APPKEY/probe-key/x"
