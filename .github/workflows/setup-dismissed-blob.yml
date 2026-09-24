@@ -4,15 +4,10 @@ jobs:
   create-blob:
     runs-on: ubuntu-latest
     steps:
-      - name: Check CORS headers with a browser-like Origin
+      - name: Check CORS headers on the actual POST response (not just OPTIONS)
         run: |
           APPKEY="j3phzvnq"
-          echo "---- GetValue with Origin header (simulating a browser cross-origin request) ----"
-          curl -s -D - -o /dev/null \
+          echo "---- POST UpdateValue with Origin header, no custom headers (mimics a 'simple request' fetch) ----"
+          curl -s -d '' -D - -o /dev/null \
             -H "Origin: https://ayoobamiri.github.io" \
-            "https://keyvalue.immanuel.co/api/KeyVal/GetValue/$APPKEY/probe-key"
-          echo "---- OPTIONS preflight check ----"
-          curl -s -D - -o /dev/null -X OPTIONS \
-            -H "Origin: https://ayoobamiri.github.io" \
-            -H "Access-Control-Request-Method: POST" \
-            "https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/$APPKEY/probe-key/x"
+            -X POST "https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/$APPKEY/dismissed-ids/%5B%5D"
