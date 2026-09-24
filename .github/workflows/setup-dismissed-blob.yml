@@ -6,8 +6,14 @@ jobs:
     steps:
       - name: Create jsonblob and print its URL
         run: |
-          curl -s -X POST -H "Content-Type: application/json" -d '[]' -D /tmp/headers.txt https://jsonblob.com/api/jsonBlob -o /dev/null
+          curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" \
+            -d '[]' -D /tmp/headers.txt https://jsonblob.com/api/jsonBlob -o /tmp/body.txt
           echo "----HEADERS----"
           cat /tmp/headers.txt
+          echo "----BODY----"
+          cat /tmp/body.txt
           echo "----LOCATION----"
           grep -i '^location:' /tmp/headers.txt
