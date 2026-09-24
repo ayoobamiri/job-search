@@ -4,14 +4,10 @@ jobs:
   create-blob:
     runs-on: ubuntu-latest
     steps:
-      - name: Get an app key and test a round-trip set/get
+      - name: Test round-trip set/get using our real app key
         run: |
-          echo "---- GetAppKey ----"
-          APPKEY_RESPONSE=$(curl -s -w '\nHTTP_STATUS:%{http_code}\n' https://keyvalue.immanuel.co/api/KeyVal/GetAppKey)
-          echo "$APPKEY_RESPONSE"
-          APPKEY=$(echo "$APPKEY_RESPONSE" | head -1 | tr -d '"' | tr -d '[:space:]')
-          echo "PARSED_APPKEY=$APPKEY"
+          APPKEY="j3phzvnq"
           echo "---- UpdateValue ----"
-          curl -s -w '\nHTTP_STATUS:%{http_code}\n' -X POST "https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/$APPKEY/probe-key/%5B%5D"
+          curl -s -d '' -w '\nHTTP_STATUS:%{http_code}\n' -X POST "https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/$APPKEY/probe-key/%5B%22abc123%22%5D"
           echo "---- GetValue ----"
           curl -s -w '\nHTTP_STATUS:%{http_code}\n' https://keyvalue.immanuel.co/api/KeyVal/GetValue/$APPKEY/probe-key
