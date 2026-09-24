@@ -3,26 +3,85 @@
 
   var EDJOIN_SOURCE_ID = 'edjoin';
   var VIEW_IDS = ['view-hub', 'view-source', 'view-districts', 'view-district-detail'];
-  var DISMISSED_KEY = 'jobSearchDismissedJobIds';
+
+  // Shared cross-device dismissed-job-ids list, stored via keyvalue.immanuel.co
+  // (a free, keyless JSON key-value store -- confirmed to support CORS from
+  // this site's origin). Every device that opens the site reads/writes this
+  // same list, so a job deleted on one computer disappears everywhere. The
+  // app key below is specific to this one list; there's no login involved,
+  // so treat it like a shared bookmark rather than a secret.
+  var KV_APP_KEY = 'j3phzvnq';
+  var KV_ITEM_KEY = 'dismissed-ids';
+  var KV_GET_URL = 'https://keyvalue.immanuel.co/api/KeyVal/GetValue/' + KV_APP_KEY + '/' + KV_ITEM_KEY;
+  var KV_SET_URL_PREFIX = 'https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/' + KV_APP_KEY + '/' + KV_ITEM_KEY + '/';
+
+  // Legacy per-device list from before cross-device sync existed. Only read
+  // once, to migrate any earlier deletions into the shared list.
+  var LEGACY_DISMISSED_KEY = 'jobSearchDismissedJobIds';
 
   var jobsDataCache = null;
   var sourcesCache = null;
+  var dismissedIdsCache = new Set();
 
-  function loadDismissedIds() {
+  function loadLegacyDismissedIds() {
     try {
-      var raw = localStorage.getItem(DISMISSED_KEY);
-      return raw ? new Set(JSON.parse(raw)) : new Set();
+      var raw = localStorage.getItem(LEGACY_DISMISSED_KEY);
+      return raw ? JSON.parse(raw) : [];
     } catch (e) {
-      return new Set();
+      return [];
     }
   }
 
-  function saveDismissedIds(ids) {
+  /** Loads the shared dismissed-ids list, merges in any pre-existing
+   * per-device list (one-time migration), and populates dismissedIdsCache.
+   * Falls back to the legacy per-device list alone if the shared store is
+   * unreachable, so the app still works (just without cross-device sync)
+   * if that service is ever down. */
+  function loadDismissedIds() {
+    return fetch(KV_GET_URL, { cache: 'no-store' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json(); // outer layer: server wraps the stored string in JSON
+      })
+      .then(function (rawValue) {
+        var ids = [];
+        if (rawValue) {
+          try {
+            ids = JSON.parse(rawValue) || [];
+          } catch (e) {
+            ids = [];
+          }
+        }
+        dismissedIdsCache = new Set(ids);
+
+        var legacy = loadLegacyDismissedIds();
+        var hasNew = legacy.some(function (id) { return !dismissedIdsCache.has(id); });
+        if (hasNew) {
+          legacy.forEach(function (id) { dismissedIdsCache.add(id); });
+          return persistDismissedIds();
+        }
+      })
+      .catch(function (err) {
+        console.warn('[app] could not reach the shared dismissed-jobs list, using this device\'s own list only:', err.message);
+        dismissedIdsCache = new Set(loadLegacyDismissedIds());
+      });
+  }
+
+  /** Persists the current dismissedIdsCache to the shared store (and mirrors
+   * it to localStorage as an offline-friendly local backup). Fire-and-forget
+   * from the caller's perspective -- a failed save just means the next
+   * device to load won't see this deletion yet; it never blocks the UI. */
+  function persistDismissedIds() {
+    var ids = [...dismissedIdsCache];
     try {
-      localStorage.setItem(DISMISSED_KEY, JSON.stringify([...ids]));
+      localStorage.setItem(LEGACY_DISMISSED_KEY, JSON.stringify(ids));
     } catch (e) {
-      // private browsing / quota / disabled storage -- deletion just won't persist
+      // private browsing / quota / disabled storage -- local mirror just won't persist
     }
+    var url = KV_SET_URL_PREFIX + encodeURIComponent(JSON.stringify(ids));
+    return fetch(url, { method: 'POST', body: '' }).catch(function (err) {
+      console.warn('[app] could not save the shared dismissed-jobs list (will retry on next delete):', err.message);
+    });
   }
 
   /** Soonest due date first; jobs with no closing date sort to the end
@@ -38,10 +97,10 @@
 
   /** Jobs the viewer hasn't dismissed. Applied everywhere (cards, counts,
    * the table) so a deleted job never reappears anywhere in the app,
-   * not just the row it was deleted from. */
+   * not just the row it was deleted from -- and, since dismissedIdsCache is
+   * loaded from the shared store, not on any other device either. */
   function visibleJobs(jobsData) {
-    var dismissed = loadDismissedIds();
-    return (jobsData.jobs || []).filter(function (job) { return !dismissed.has(job.id); });
+    return (jobsData.jobs || []).filter(function (job) { return !dismissedIdsCache.has(job.id); });
   }
 
   function loadJson(path) {
@@ -223,14 +282,13 @@
       var btn = e.target.closest('.job-delete-btn');
       if (!btn || !jobsDataCache) return;
       var id = btn.getAttribute('data-delete-id');
-      var dismissed = loadDismissedIds();
-      dismissed.add(id);
-      saveDismissedIds(dismissed);
+      dismissedIdsCache.add(id);
       renderMeta(jobsDataCache);
       route();
+      persistDismissedIds();
     });
 
-    Promise.all([loadJson('data/jobs.json'), loadJson('data/sources.json')])
+    Promise.all([loadJson('data/jobs.json'), loadJson('data/sources.json'), loadDismissedIds()])
       .then(function (results) {
         jobsDataCache = results[0];
         sourcesCache = results[1].filter(function (s) { return s.enabled; });
