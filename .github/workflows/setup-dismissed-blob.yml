@@ -4,16 +4,14 @@ jobs:
   create-blob:
     runs-on: ubuntu-latest
     steps:
-      - name: Create jsonblob and print its URL
+      - name: Get an app key and test a round-trip set/get
         run: |
-          curl -s -X POST \
-            -H "Content-Type: application/json" \
-            -H "Accept: application/json" \
-            -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" \
-            -d '[]' -D /tmp/headers.txt https://jsonblob.com/api/jsonBlob -o /tmp/body.txt
-          echo "----HEADERS----"
-          cat /tmp/headers.txt
-          echo "----BODY----"
-          cat /tmp/body.txt
-          echo "----LOCATION----"
-          grep -i '^location:' /tmp/headers.txt
+          echo "---- GetAppKey ----"
+          APPKEY_RESPONSE=$(curl -s -w '\nHTTP_STATUS:%{http_code}\n' https://keyvalue.immanuel.co/api/KeyVal/GetAppKey)
+          echo "$APPKEY_RESPONSE"
+          APPKEY=$(echo "$APPKEY_RESPONSE" | head -1 | tr -d '"' | tr -d '[:space:]')
+          echo "PARSED_APPKEY=$APPKEY"
+          echo "---- UpdateValue ----"
+          curl -s -w '\nHTTP_STATUS:%{http_code}\n' -X POST "https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/$APPKEY/probe-key/%5B%5D"
+          echo "---- GetValue ----"
+          curl -s -w '\nHTTP_STATUS:%{http_code}\n' https://keyvalue.immanuel.co/api/KeyVal/GetValue/$APPKEY/probe-key
