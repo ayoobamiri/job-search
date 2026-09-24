@@ -278,6 +278,19 @@ button { font-family: inherit; }
 .jobs-table tbody tr:hover { background: var(--surface-hover); }
 .jobs-table .apply-link { display: inline-block; }
 
+.row-delete-btn {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-mute);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), color 0.15s var(--ease), background 0.15s var(--ease);
+}
+.row-delete-btn:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+
 .empty-state {
   text-align: center;
   padding: 64px 20px;

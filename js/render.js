@@ -82,6 +82,7 @@
         '<td>' + escapeHtml(job.employmentType || 'Not provided') + '</td>' +
         '<td>' + escapeHtml(distanceText) + '</td>' +
         '<td><a class="apply-link" href="' + escapeHtml(job.applyUrl) + '" target="_blank" rel="noopener noreferrer">View Job / Apply</a></td>' +
+        '<td><button type="button" class="row-delete-btn" data-delete-id="' + escapeHtml(job.id) + '" title="Remove from this list" aria-label="Remove from this list">&times;</button></td>' +
       '</tr>'
     );
   }

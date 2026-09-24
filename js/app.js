@@ -3,9 +3,38 @@
 
   var EDJOIN_SOURCE_ID = 'edjoin';
   var VIEW_IDS = ['view-hub', 'view-source', 'view-districts', 'view-district-detail'];
+  var DISMISSED_KEY = 'jobSearchDismissedJobIds';
 
   var jobsDataCache = null;
   var sourcesCache = null;
+
+  function loadDismissedIds() {
+    try {
+      var raw = localStorage.getItem(DISMISSED_KEY);
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch (e) {
+      return new Set();
+    }
+  }
+
+  function saveDismissedIds(ids) {
+    try {
+      localStorage.setItem(DISMISSED_KEY, JSON.stringify([...ids]));
+    } catch (e) {
+      // private browsing / quota / disabled storage -- deletion just won't persist
+    }
+  }
+
+  /** Soonest due date first; jobs with no closing date sort to the end
+   * (newest-first among themselves), since they have no real deadline. */
+  function sortByDueDate(jobs) {
+    return jobs.slice().sort(function (a, b) {
+      if (a.closingDate && b.closingDate) return new Date(a.closingDate) - new Date(b.closingDate);
+      if (a.closingDate && !b.closingDate) return -1;
+      if (!a.closingDate && b.closingDate) return 1;
+      return new Date(b.firstSeen || 0) - new Date(a.firstSeen || 0);
+    });
+  }
 
   function loadJson(path) {
     return fetch(path, { cache: 'no-store' }).then(function (res) {
@@ -81,8 +110,9 @@
 
     document.getElementById('source-grid').innerHTML = cards.join('');
 
-    var sortedJobs = Filters.filterAndSortJobs(jobs);
-    document.getElementById('jobs-table-body').innerHTML = sortedJobs.map(Render.jobRowHtml).join('');
+    var dismissed = loadDismissedIds();
+    var tableJobs = sortByDueDate(jobs.filter(function (job) { return !dismissed.has(job.id); }));
+    document.getElementById('jobs-table-body').innerHTML = tableJobs.map(Render.jobRowHtml).join('');
   }
 
   function renderSourceDetail(jobsData, sources, sourceId) {
@@ -182,6 +212,17 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('jobs-table-body').addEventListener('click', function (e) {
+      var btn = e.target.closest('.row-delete-btn');
+      if (!btn) return;
+      var id = btn.getAttribute('data-delete-id');
+      var dismissed = loadDismissedIds();
+      dismissed.add(id);
+      saveDismissedIds(dismissed);
+      var row = btn.closest('tr');
+      if (row) row.remove();
+    });
+
     Promise.all([loadJson('data/jobs.json'), loadJson('data/sources.json')])
       .then(function (results) {
         jobsDataCache = results[0];
