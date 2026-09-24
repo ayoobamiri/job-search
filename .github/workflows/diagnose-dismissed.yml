@@ -1,0 +1,24 @@
+name: One-off diagnose dismissed-jobs sync
+on: workflow_dispatch
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deployed app.js content and cache headers
+        run: |
+          echo "---- Deployed app.js headers ----"
+          curl -s -D - -o /tmp/deployed-app.js https://ayoobamiri.github.io/job-search/js/app.js
+          echo "---- Does it contain attemptPersist? ----"
+          grep -c "attemptPersist" /tmp/deployed-app.js || echo "NOT FOUND"
+          echo "---- Does it contain KV_APP_KEY j3phzvnq? ----"
+          grep -c "j3phzvnq" /tmp/deployed-app.js || echo "NOT FOUND"
+          echo "---- First 5 lines ----"
+          head -5 /tmp/deployed-app.js
+      - name: Check current real value in the shared store
+        run: |
+          echo "---- Current dismissed-ids value on keyvalue.immanuel.co ----"
+          curl -s -w '\nHTTP_STATUS:%{http_code}\n' https://keyvalue.immanuel.co/api/KeyVal/GetValue/j3phzvnq/dismissed-ids
+      - name: Check GitHub Pages deployment status
+        run: |
+          curl -s https://api.github.com/repos/ayoobamiri/job-search/pages/builds/latest \
+            -H "Accept: application/vnd.github+json"
